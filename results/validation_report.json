@@ -1,0 +1,762 @@
+{
+  "generated_at_utc": "2026-11-14T15:51:57.207776+00:00",
+  "engine": {
+    "name": "Scale-Invariant Kinematic Engine",
+    "epsilon": 1e-07,
+    "K_ring": 30,
+    "delta_tau_clamp": [
+      0.01,
+      5.0
+    ],
+    "omega_formula": "0.05 + 0.12*s_t + 0.08*(|a_perp|**2) + 0.02*F_c",
+    "phase_boundaries": {
+      "metastable_thinning": 0.07,
+      "phase_veto": 0.19
+    }
+  },
+  "datasets": {
+    "nasa_langley_csm25": {
+      "path": "data/nasa_raw/nasa_csm_25",
+      "sessions": {
+        "25_CA": {
+          "file": "25_CA.csv",
+          "n_samples": 92162,
+          "duration_s": 360.04702499999996,
+          "sampling_rate_hz": 250.12506253153296,
+          "columns": [
+            "Unnamed: 0",
+            "TimeSecs",
+            "EEG_FP1",
+            "EEG_F7",
+            "EEG_F8",
+            "EEG_T4",
+            "EEG_T6",
+            "EEG_T5",
+            "EEG_T3",
+            "EEG_FP2",
+            "EEG_O1",
+            "EEG_P3",
+            "EEG_Pz",
+            "EEG_F3",
+            "EEG_Fz",
+            "EEG_F4",
+            "EEG_C4",
+            "EEG_P4",
+            "EEG_POz",
+            "EEG_C3",
+            "EEG_Cz",
+            "EEG_O2",
+            "ECG",
+            "R",
+            "GSR",
+            "Event"
+          ],
+          "ibi_source": "ecg_rpeaks",
+          "n_ibi": 477,
+          "mean_ibi_s": 0.7468155618448635,
+          "mean_hr_bpm": 80.34112177815577,
+          "reference_event_t_s": 0.6559999999999999,
+          "mean_Omega": 0.44852650045501036,
+          "max_Omega": 1.6766440759500172,
+          "mean_a_perp": 0.45979819007974304,
+          "max_a_perp": 3.792563946667778,
+          "mean_F_c": 13.325739782727858,
+          "pct_metastable": 100.0,
+          "pct_veto": 99.16142557651992
+        },
+        "25_DA": {
+          "file": "25_DA.csv",
+          "n_samples": 92078,
+          "duration_s": 359.67578125,
+          "sampling_rate_hz": 256.0,
+          "columns": [
+            "Unnamed: 0",
+            "TimeSecs",
+            "EEG_FP1",
+            "EEG_F7",
+            "EEG_F8",
+            "EEG_T4",
+            "EEG_T6",
+            "EEG_T5",
+            "EEG_T3",
+            "EEG_FP2",
+            "EEG_O1",
+            "EEG_P3",
+            "EEG_Pz",
+            "EEG_F3",
+            "EEG_Fz",
+            "EEG_F4",
+            "EEG_C4",
+            "EEG_P4",
+            "EEG_POz",
+            "EEG_C3",
+            "EEG_Cz",
+            "EEG_O2",
+            "ECG",
+            "R",
+            "GSR",
+            "Event"
+          ],
+          "ibi_source": "ecg_rpeaks",
+          "n_ibi": 504,
+          "mean_ibi_s": 0.7126891121031746,
+          "mean_hr_bpm": 84.18818104704526,
+          "reference_event_t_s": 31.73046875,
+          "mean_Omega": 0.5943963079227381,
+          "max_Omega": 2.659707211816667,
+          "mean_a_perp": 0.618222849957492,
+          "max_a_perp": 5.069289280306422,
+          "mean_F_c": 18.206691541612972,
+          "pct_metastable": 100.0,
+          "pct_veto": 99.20634920634922
+        },
+        "25_LOFT": {
+          "file": "25_LOFT.csv",
+          "n_samples": 927480,
+          "duration_s": 3622.96484375,
+          "sampling_rate_hz": 256.0,
+          "columns": [
+            "Unnamed: 0",
+            "TimeSecs",
+            "EEG_FP1",
+            "EEG_F7",
+            "EEG_F8",
+            "EEG_T4",
+            "EEG_T6",
+            "EEG_T5",
+            "EEG_T3",
+            "EEG_FP2",
+            "EEG_O1",
+            "EEG_P3",
+            "EEG_Pz",
+            "EEG_F3",
+            "EEG_Fz",
+            "EEG_F4",
+            "EEG_C4",
+            "EEG_P4",
+            "EEG_POz",
+            "EEG_C3",
+            "EEG_Cz",
+            "EEG_O2",
+            "ECG",
+            "R",
+            "GSR",
+            "Event"
+          ],
+          "ibi_source": "ecg_rpeaks",
+          "n_ibi": 3800,
+          "mean_ibi_s": 0.9297111430921052,
+          "mean_hr_bpm": 64.53617389208368,
+          "reference_event_t_s": 702.9453125,
+          "mean_Omega": 0.3834300173229309,
+          "max_Omega": 1.285838968527174,
+          "mean_a_perp": 0.3304437737698626,
+          "max_a_perp": 3.2392252439937406,
+          "mean_F_c": 9.886752393222734,
+          "pct_metastable": 100.0,
+          "pct_veto": 98.81578947368422
+        },
+        "25_SS": {
+          "file": "25_SS.csv",
+          "n_samples": 92136,
+          "duration_s": 359.844015,
+          "sampling_rate_hz": 250.12506253153296,
+          "columns": [
+            "Unnamed: 0",
+            "TimeSecs",
+            "EEG_FP1",
+            "EEG_F7",
+            "EEG_F8",
+            "EEG_T4",
+            "EEG_T6",
+            "EEG_T5",
+            "EEG_T3",
+            "EEG_FP2",
+            "EEG_O1",
+            "EEG_P3",
+            "EEG_Pz",
+            "EEG_F3",
+            "EEG_Fz",
+            "EEG_F4",
+            "EEG_C4",
+            "EEG_P4",
+            "EEG_POz",
+            "EEG_C3",
+            "EEG_Cz",
+            "EEG_O2",
+            "ECG",
+            "R",
+            "GSR",
+            "Event"
+          ],
+          "ibi_source": "ecg_rpeaks",
+          "n_ibi": 447,
+          "mean_ibi_s": 0.8017919843400448,
+          "mean_hr_bpm": 74.83237694049288,
+          "reference_event_t_s": 84.733002,
+          "mean_Omega": 0.564273731757743,
+          "max_Omega": 2.0444602886038163,
+          "mean_a_perp": 0.5764430162611791,
+          "max_a_perp": 4.1901026654025575,
+          "mean_F_c": 16.62191936578532,
+          "pct_metastable": 100.0,
+          "pct_veto": 99.32885906040269
+        }
+      }
+    },
+    "nasa_osdr_osd575_lsds8": {
+      "path": "data/nasa_raw/LSDS-8_Multiplex_serum_cardiovascular_EvePanel_TRANSFORMED.csv",
+      "meta": {
+        "file": "LSDS-8_Multiplex_serum_cardiovascular_EvePanel_TRANSFORMED.csv",
+        "n_rows": 28,
+        "columns": [
+          "Sample Name",
+          "a2_macroglobulin_concentration_nanogram_per_milliliter",
+          "a2_macroglobulin_percent",
+          "agp_concentration_nanogram_per_milliliter",
+          "agp_percent",
+          "crp_concentration_picogram_per_milliliter",
+          "crp_percent",
+          "fetuin_a36_concentration_nanogram_per_milliliter",
+          "fetuin_a36_percent",
+          "fibrinogen_concentration_nanogram_per_milliliter",
+          "fibrinogen_percent",
+          "haptoglobin_concentration_nanogram_per_milliliter",
+          "haptoglobin_percent",
+          "l_selectin_concentration_picogram_per_milliliter",
+          "l_selectin_percent",
+          "pf4_concentration_nanogram_per_milliliter",
+          "pf4_percent",
+          "sap_concentration_picogram_per_milliliter",
+          "sap_percent"
+        ],
+        "feature_cols": [
+          "a2_macroglobulin_percent",
+          "agp_percent",
+          "crp_percent",
+          "fetuin_a36_percent",
+          "fibrinogen_percent",
+          "haptoglobin_percent",
+          "l_selectin_percent",
+          "pf4_percent",
+          "sap_percent"
+        ],
+        "n_crew": 4
+      },
+      "crew": {
+        "C001": {
+          "n_timepoints": 7,
+          "feature_cols": [
+            "a2_macroglobulin_percent",
+            "agp_percent",
+            "crp_percent",
+            "fetuin_a36_percent",
+            "fibrinogen_percent",
+            "haptoglobin_percent",
+            "l_selectin_percent",
+            "pf4_percent",
+            "sap_percent"
+          ],
+          "preflight_mean_displacement": 0.4649160575546287,
+          "postflight_mean_displacement": 1.1606965135478506,
+          "displacement_delta": 0.6957804559932219,
+          "mean_Omega": 0.5756851468216485,
+          "max_Omega": 2.464112102164435,
+          "mean_a_perp": 1.0857898793997387,
+          "max_a_perp": 5.281777201448323,
+          "timepoints": [
+            "L-92",
+            "L-44",
+            "L-3",
+            "R+1",
+            "R+45",
+            "R+82",
+            "R+194"
+          ],
+          "days": [
+            -92.0,
+            -44.0,
+            -3.0,
+            1.0,
+            45.0,
+            82.0,
+            194.0
+          ]
+        },
+        "C002": {
+          "n_timepoints": 7,
+          "feature_cols": [
+            "a2_macroglobulin_percent",
+            "agp_percent",
+            "crp_percent",
+            "fetuin_a36_percent",
+            "fibrinogen_percent",
+            "haptoglobin_percent",
+            "l_selectin_percent",
+            "pf4_percent",
+            "sap_percent"
+          ],
+          "preflight_mean_displacement": 0.7250931102789496,
+          "postflight_mean_displacement": 0.8790344503519116,
+          "displacement_delta": 0.153941340072962,
+          "mean_Omega": 0.6015947521409093,
+          "max_Omega": 2.7647507197565466,
+          "mean_a_perp": 1.2841659352355823,
+          "max_a_perp": 5.55580626950695,
+          "timepoints": [
+            "L-92",
+            "L-44",
+            "L-3",
+            "R+1",
+            "R+45",
+            "R+82",
+            "R+194"
+          ],
+          "days": [
+            -92.0,
+            -44.0,
+            -3.0,
+            1.0,
+            45.0,
+            82.0,
+            194.0
+          ]
+        },
+        "C003": {
+          "n_timepoints": 7,
+          "feature_cols": [
+            "a2_macroglobulin_percent",
+            "agp_percent",
+            "crp_percent",
+            "fetuin_a36_percent",
+            "fibrinogen_percent",
+            "haptoglobin_percent",
+            "l_selectin_percent",
+            "pf4_percent",
+            "sap_percent"
+          ],
+          "preflight_mean_displacement": 1.0453947122386544,
+          "postflight_mean_displacement": 0.8897360668314758,
+          "displacement_delta": -0.15565864540717866,
+          "mean_Omega": 0.3594687044013863,
+          "max_Omega": 0.8854283563416082,
+          "mean_a_perp": 0.9348148434609833,
+          "max_a_perp": 2.845674687075091,
+          "timepoints": [
+            "L-92",
+            "L-44",
+            "L-3",
+            "R+1",
+            "R+45",
+            "R+82",
+            "R+194"
+          ],
+          "days": [
+            -92.0,
+            -44.0,
+            -3.0,
+            1.0,
+            45.0,
+            82.0,
+            194.0
+          ]
+        },
+        "C004": {
+          "n_timepoints": 7,
+          "feature_cols": [
+            "a2_macroglobulin_percent",
+            "agp_percent",
+            "crp_percent",
+            "fetuin_a36_percent",
+            "fibrinogen_percent",
+            "haptoglobin_percent",
+            "l_selectin_percent",
+            "pf4_percent",
+            "sap_percent"
+          ],
+          "preflight_mean_displacement": 0.7513834828955636,
+          "postflight_mean_displacement": 0.6435105255333177,
+          "displacement_delta": -0.10787295736224589,
+          "mean_Omega": 0.3670360652746156,
+          "max_Omega": 0.7774249969734971,
+          "mean_a_perp": 1.1071249979570783,
+          "max_a_perp": 2.74512360107156,
+          "timepoints": [
+            "L-92",
+            "L-44",
+            "L-3",
+            "R+1",
+            "R+45",
+            "R+82",
+            "R+194"
+          ],
+          "days": [
+            -92.0,
+            -44.0,
+            -3.0,
+            1.0,
+            45.0,
+            82.0,
+            194.0
+          ]
+        }
+      },
+      "crew_series": {
+        "C001": {
+          "timepoints": [
+            "L-92",
+            "L-44",
+            "L-3",
+            "R+1",
+            "R+45",
+            "R+82",
+            "R+194"
+          ],
+          "days": [
+            -92.0,
+            -44.0,
+            -3.0,
+            1.0,
+            45.0,
+            82.0,
+            194.0
+          ],
+          "Omega_series": [
+            0.08970400773385713,
+            0.12974392311013563,
+            0.21318026555621666,
+            2.464112102164435,
+            0.2668419651088699,
+            0.42691137091127274,
+            0.43930239316675235
+          ],
+          "s_t_series": [
+            0.3308667311154761,
+            0.6645326754184969,
+            0.3993487661299132,
+            0.45889179631675847,
+            0.4197376061237226,
+            1.923676038058049,
+            1.8404806136928722
+          ],
+          "a_perp_series": [
+            0.0,
+            1.0299575619401294e-07,
+            1.0817954029200225,
+            5.281777201448323,
+            0.5860906959272247,
+            0.1976255236043864,
+            0.45324022890245846
+          ]
+        },
+        "C002": {
+          "timepoints": [
+            "L-92",
+            "L-44",
+            "L-3",
+            "R+1",
+            "R+45",
+            "R+82",
+            "R+194"
+          ],
+          "days": [
+            -92.0,
+            -44.0,
+            -3.0,
+            1.0,
+            45.0,
+            82.0,
+            194.0
+          ],
+          "Omega_series": [
+            0.10946517771106248,
+            0.1557094332844599,
+            0.2532523027592514,
+            0.27535655936473086,
+            0.258336769235669,
+            2.7647507197565466,
+            0.3942923028746442
+          ],
+          "s_t_series": [
+            0.4955431475921873,
+            0.8809119299764314,
+            0.7988242532682304,
+            1.5273805232745286,
+            0.37234546605049396,
+            0.6815278394751617,
+            0.9348839726074623
+          ],
+          "a_perp_series": [
+            0.0,
+            8.436437842891708e-08,
+            1.040350755565552,
+            0.4054936353669664,
+            1.1787849890015982,
+            5.55580626950695,
+            0.8087258128436299
+          ]
+        },
+        "C003": {
+          "timepoints": [
+            "L-92",
+            "L-44",
+            "L-3",
+            "R+1",
+            "R+45",
+            "R+82",
+            "R+194"
+          ],
+          "days": [
+            -92.0,
+            -44.0,
+            -3.0,
+            1.0,
+            45.0,
+            82.0,
+            194.0
+          ],
+          "Omega_series": [
+            0.1534184036403775,
+            0.22844821042573984,
+            0.18663070520585015,
+            0.8854283563416082,
+            0.274285726868364,
+            0.42985067626360535,
+            0.3582188520641592
+          ],
+          "s_t_series": [
+            0.8618200303364794,
+            1.4870684129670098,
+            0.787295693412474,
+            0.9871158486556336,
+            0.8552701751656175,
+            0.8295756269089446,
+            0.8869826165957077
+          ],
+          "a_perp_series": [
+            0.0,
+            4.348492642740996e-08,
+            0.6115902959469288,
+            2.845674687075091,
+            0.6947408532453331,
+            1.4502439630081367,
+            0.9414540614664679
+          ]
+        },
+        "C004": {
+          "timepoints": [
+            "L-92",
+            "L-44",
+            "L-3",
+            "R+1",
+            "R+45",
+            "R+82",
+            "R+194"
+          ],
+          "days": [
+            -92.0,
+            -44.0,
+            -3.0,
+            1.0,
+            45.0,
+            82.0,
+            194.0
+          ],
+          "Omega_series": [
+            0.0969953819433759,
+            0.1651006933127776,
+            0.20780756395247818,
+            0.7774249969734971,
+            0.5035318245966076,
+            0.4068312675648701,
+            0.4115607285787025
+          ],
+          "s_t_series": [
+            0.39162818286146583,
+            0.9591724298252625,
+            0.903349835999962,
+            0.46876274227129855,
+            0.671388705091245,
+            0.4459084036285824,
+            0.9879822511421443
+          ],
+          "a_perp_series": [
+            0.0,
+            8.668727461553896e-08,
+            0.670735366647867,
+            2.74512360107156,
+            1.8304347307489075,
+            1.4547404194452644,
+            1.0488407810986746
+          ]
+        }
+      }
+    }
+  },
+  "lead_time_detections": [
+    {
+      "dataset": "NASA_Langley_CSM25",
+      "subject_or_session": "25_CA",
+      "phase": "Metastable Thinning",
+      "threshold": 0.07,
+      "first_crossing_t_s": 2.149,
+      "reference_event_t_s": 0.6559999999999999,
+      "lead_time_s": -1.493,
+      "omega_at_crossing": 0.16399999999999998
+    },
+    {
+      "dataset": "NASA_Langley_CSM25",
+      "subject_or_session": "25_CA",
+      "phase": "Phase Veto",
+      "threshold": 0.19,
+      "first_crossing_t_s": 3.168,
+      "reference_event_t_s": 0.6559999999999999,
+      "lead_time_s": -2.5120000000000005,
+      "omega_at_crossing": 0.19674797562306212
+    },
+    {
+      "dataset": "NASA_Langley_CSM25",
+      "subject_or_session": "25_DA",
+      "phase": "Metastable Thinning",
+      "threshold": 0.07,
+      "first_crossing_t_s": 0.87109375,
+      "reference_event_t_s": 31.73046875,
+      "lead_time_s": 30.859375,
+      "omega_at_crossing": 0.08609375
+    },
+    {
+      "dataset": "NASA_Langley_CSM25",
+      "subject_or_session": "25_DA",
+      "phase": "Phase Veto",
+      "threshold": 0.19,
+      "first_crossing_t_s": 2.53515625,
+      "reference_event_t_s": 31.73046875,
+      "lead_time_s": 29.1953125,
+      "omega_at_crossing": 0.23872918679865124
+    },
+    {
+      "dataset": "NASA_Langley_CSM25",
+      "subject_or_session": "25_LOFT",
+      "phase": "Metastable Thinning",
+      "threshold": 0.07,
+      "first_crossing_t_s": 1.08203125,
+      "reference_event_t_s": 702.9453125,
+      "lead_time_s": 701.86328125,
+      "omega_at_crossing": 0.1521875
+    },
+    {
+      "dataset": "NASA_Langley_CSM25",
+      "subject_or_session": "25_LOFT",
+      "phase": "Phase Veto",
+      "threshold": 0.19,
+      "first_crossing_t_s": 8.55078125,
+      "reference_event_t_s": 702.9453125,
+      "lead_time_s": 694.39453125,
+      "omega_at_crossing": 0.2519606774676512
+    },
+    {
+      "dataset": "NASA_Langley_CSM25",
+      "subject_or_session": "25_SS",
+      "phase": "Metastable Thinning",
+      "threshold": 0.07,
+      "first_crossing_t_s": 2.008,
+      "reference_event_t_s": 84.733002,
+      "lead_time_s": 82.725002,
+      "omega_at_crossing": 0.17612
+    },
+    {
+      "dataset": "NASA_Langley_CSM25",
+      "subject_or_session": "25_SS",
+      "phase": "Phase Veto",
+      "threshold": 0.19,
+      "first_crossing_t_s": 3.105,
+      "reference_event_t_s": 84.733002,
+      "lead_time_s": 81.628002,
+      "omega_at_crossing": 0.2761741618660748
+    },
+    {
+      "dataset": "OSD-575_LSDS-8",
+      "subject_or_session": "C001",
+      "phase": "Metastable Thinning",
+      "threshold": 0.07,
+      "first_crossing_t_s": -92.0,
+      "reference_event_t_s": 1.0,
+      "lead_time_s": 93.0,
+      "omega_at_crossing": 0.08970400773385713
+    },
+    {
+      "dataset": "OSD-575_LSDS-8",
+      "subject_or_session": "C001",
+      "phase": "Phase Veto",
+      "threshold": 0.19,
+      "first_crossing_t_s": -3.0,
+      "reference_event_t_s": 1.0,
+      "lead_time_s": 4.0,
+      "omega_at_crossing": 0.21318026555621666
+    },
+    {
+      "dataset": "OSD-575_LSDS-8",
+      "subject_or_session": "C002",
+      "phase": "Metastable Thinning",
+      "threshold": 0.07,
+      "first_crossing_t_s": -92.0,
+      "reference_event_t_s": 1.0,
+      "lead_time_s": 93.0,
+      "omega_at_crossing": 0.10946517771106248
+    },
+    {
+      "dataset": "OSD-575_LSDS-8",
+      "subject_or_session": "C002",
+      "phase": "Phase Veto",
+      "threshold": 0.19,
+      "first_crossing_t_s": -3.0,
+      "reference_event_t_s": 1.0,
+      "lead_time_s": 4.0,
+      "omega_at_crossing": 0.2532523027592514
+    },
+    {
+      "dataset": "OSD-575_LSDS-8",
+      "subject_or_session": "C003",
+      "phase": "Metastable Thinning",
+      "threshold": 0.07,
+      "first_crossing_t_s": -92.0,
+      "reference_event_t_s": 1.0,
+      "lead_time_s": 93.0,
+      "omega_at_crossing": 0.1534184036403775
+    },
+    {
+      "dataset": "OSD-575_LSDS-8",
+      "subject_or_session": "C003",
+      "phase": "Phase Veto",
+      "threshold": 0.19,
+      "first_crossing_t_s": -44.0,
+      "reference_event_t_s": 1.0,
+      "lead_time_s": 45.0,
+      "omega_at_crossing": 0.22844821042573984
+    },
+    {
+      "dataset": "OSD-575_LSDS-8",
+      "subject_or_session": "C004",
+      "phase": "Metastable Thinning",
+      "threshold": 0.07,
+      "first_crossing_t_s": -92.0,
+      "reference_event_t_s": 1.0,
+      "lead_time_s": 93.0,
+      "omega_at_crossing": 0.0969953819433759
+    },
+    {
+      "dataset": "OSD-575_LSDS-8",
+      "subject_or_session": "C004",
+      "phase": "Phase Veto",
+      "threshold": 0.19,
+      "first_crossing_t_s": -3.0,
+      "reference_event_t_s": 1.0,
+      "lead_time_s": 4.0,
+      "omega_at_crossing": 0.20780756395247818
+    }
+  ],
+  "artifacts": {
+    "validation_report_json": "results/validation_report.json",
+    "omega_trajectory_summary_csv": "results/omega_trajectory_summary.csv"
+  }
+}

@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.venv/
+venv/
+.env
+.Python
+
+# Tooling / caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# NASA raw archives / large Langley CSM CSVs (obtain locally from 25.zip)
+data/nasa_raw/*.zip
+data/nasa_raw/25.zip/
+data/nasa_raw/nasa_csm_25/*.csv
+*.zip
+
+# Local scratch
+_inspect_*.py
