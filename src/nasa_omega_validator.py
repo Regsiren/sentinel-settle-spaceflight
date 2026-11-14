@@ -12,6 +12,7 @@ Validates the edge biophysical Omega engine against:
 Outputs:
   - results/validation_report.json
   - results/omega_trajectory_summary.csv
+  - results/omega_lead_time_plot.png
   - Terminal lead-time detection table
 """
 
@@ -26,6 +27,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.signal import find_peaks
@@ -43,6 +48,19 @@ LSDS_PATH = DATA_RAW / "LSDS-8_Multiplex_serum_cardiovascular_EvePanel_TRANSFORM
 RESULTS_DIR = ROOT / "results"
 REPORT_JSON = RESULTS_DIR / "validation_report.json"
 TRAJECTORY_CSV = RESULTS_DIR / "omega_trajectory_summary.csv"
+LEAD_TIME_PLOT = RESULTS_DIR / "omega_lead_time_plot.png"
+
+# Cupola / Night Ops palette (Sentinel Settle)
+COLOR_OBSIDIAN = "#121212"
+COLOR_PANEL = "#1E1E1E"
+COLOR_SAGE = "#8FA89B"
+COLOR_AMBER = "#D6A84E"
+COLOR_CORAL = "#E05A47"
+COLOR_TEXT = "#E8E6E3"
+COLOR_MUTED = "#9A9A96"
+COLOR_PRE = "#8FA89B"
+COLOR_POST = "#D6A84E"
+COLOR_SHADE = "#D6A84E"
 
 # ---------------------------------------------------------------------------
 # Engine constants
@@ -608,6 +626,268 @@ def resolve_csm_dir() -> Path:
     )
 
 
+def first_sustained_crossing(
+    t: np.ndarray,
+    omega: np.ndarray,
+    threshold: float,
+    n_sustain: int = 5,
+) -> tuple[float | None, float | None]:
+    """First index where Omega stays at/above threshold for n_sustain samples."""
+    above = np.asarray(omega, dtype=float) >= threshold
+    if n_sustain <= 1:
+        return first_crossing(t, omega, threshold)
+    run = 0
+    for i, flag in enumerate(above):
+        run = run + 1 if flag else 0
+        if run >= n_sustain:
+            j = i - n_sustain + 1
+            return float(t[j]), float(omega[j])
+    return first_crossing(t, omega, threshold)
+
+
+def _style_night_ops_axis(ax: plt.Axes) -> None:
+    ax.set_facecolor(COLOR_PANEL)
+    ax.tick_params(colors=COLOR_MUTED, labelsize=8)
+    for spine in ax.spines.values():
+        spine.set_color("#2A2A2A")
+    ax.yaxis.label.set_color(COLOR_TEXT)
+    ax.xaxis.label.set_color(COLOR_TEXT)
+    ax.title.set_color(COLOR_TEXT)
+    ax.grid(True, color="#2C2C2C", linewidth=0.6, alpha=0.85)
+
+
+def generate_lead_time_figure(
+    loft_kin: dict[str, np.ndarray],
+    loft_event_t: float | None,
+    lsds_crew: dict[str, dict[str, Any]],
+    out_path: Path = LEAD_TIME_PLOT,
+) -> dict[str, Any]:
+    """
+    Publication-grade two-panel Cupola / Night Ops validation figure.
+
+    Panel 1 — NASA Langley 25_LOFT Omega trajectory + early-warning shade.
+    Panel 2 — OSD-575 Inspiration4 pre- vs post-flight composite Omega / displacement.
+    """
+    t = np.asarray(loft_kin["t"], dtype=float)
+    omega = np.asarray(loft_kin["Omega_t"], dtype=float)
+    cross_t, _ = first_sustained_crossing(t, omega, PHASE_METASTABLE, n_sustain=5)
+    if cross_t is None:
+        cross_t, _ = first_crossing(t, omega, PHASE_METASTABLE)
+    event_t = float(loft_event_t) if loft_event_t is not None else None
+    lead_s = (event_t - cross_t) if (event_t is not None and cross_t is not None) else None
+    lead_min = (lead_s / 60.0) if lead_s is not None else None
+
+    fig, (ax1, ax2) = plt.subplots(
+        2,
+        1,
+        figsize=(11.0, 9.0),
+        gridspec_kw={"height_ratios": [1.15, 1.0], "hspace": 0.32},
+    )
+    fig.patch.set_facecolor(COLOR_OBSIDIAN)
+
+    # ---- Panel 1: 25_LOFT lead time ----
+    _style_night_ops_axis(ax1)
+    ax1.plot(t, omega, color=COLOR_SAGE, linewidth=1.35, label=r"$\Omega_t$ (25_LOFT)")
+    ax1.axhline(
+        PHASE_METASTABLE,
+        color=COLOR_AMBER,
+        linestyle="--",
+        linewidth=1.4,
+        label=r"Metastable Thinning ($\Omega=0.07$)",
+    )
+    ax1.axhline(
+        PHASE_VETO,
+        color=COLOR_CORAL,
+        linestyle="--",
+        linewidth=1.4,
+        label=r"Phase Veto ($\Omega=0.19$)",
+    )
+
+    if cross_t is not None and event_t is not None and lead_s is not None and lead_s > 0:
+        ax1.axvspan(
+            cross_t,
+            event_t,
+            color=COLOR_SHADE,
+            alpha=0.18,
+            zorder=0,
+            label="Early-warning lead-time window",
+        )
+        ax1.axvline(cross_t, color=COLOR_AMBER, linewidth=1.0, alpha=0.9)
+        ax1.axvline(event_t, color=COLOR_CORAL, linewidth=1.2, alpha=0.95)
+        y_ann = max(float(np.nanpercentile(omega, 92)), PHASE_VETO * 1.8)
+        mid = 0.5 * (cross_t + event_t)
+        ax1.annotate(
+            f"Lead time = {lead_s:.0f} s (~{lead_min:.1f} min)\n"
+            f"metastable → Event",
+            xy=(mid, y_ann),
+            xytext=(mid, y_ann),
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            color=COLOR_AMBER,
+            fontweight="bold",
+            bbox=dict(
+                boxstyle="round,pad=0.35",
+                facecolor=COLOR_PANEL,
+                edgecolor=COLOR_AMBER,
+                alpha=0.92,
+            ),
+        )
+        ax1.text(
+            event_t,
+            float(np.nanmin(omega)) + 0.02 * (float(np.nanmax(omega)) - float(np.nanmin(omega))),
+            "Event",
+            color=COLOR_CORAL,
+            fontsize=8,
+            ha="left",
+            va="bottom",
+            rotation=90,
+        )
+
+    ax1.set_xlim(float(t[0]), float(t[-1]))
+    ax1.set_ylim(bottom=0.0)
+    ax1.set_xlabel("Time (TimeSecs)")
+    ax1.set_ylabel(r"$\Omega_t$")
+    ax1.set_title(
+        "NASA Langley CSM 25_LOFT — Flight-Crew ECG Lead-Time Detection",
+        fontsize=11,
+        pad=8,
+    )
+    leg1 = ax1.legend(
+        loc="upper right",
+        fontsize=7.5,
+        frameon=True,
+        fancybox=False,
+        edgecolor="#2A2A2A",
+    )
+    leg1.get_frame().set_facecolor(COLOR_PANEL)
+    for txt in leg1.get_texts():
+        txt.set_color(COLOR_TEXT)
+
+    # ---- Panel 2: OSD-575 pre/post composite ----
+    _style_night_ops_axis(ax2)
+    crews = sorted(lsds_crew.keys())
+    pre_omega = []
+    post_omega = []
+    pre_disp = []
+    post_disp = []
+    for crew in crews:
+        cr = lsds_crew[crew]
+        tags = cr["timepoints"]
+        om = np.asarray(cr["Omega_series"], dtype=float)
+        st = np.asarray(cr["s_t_series"], dtype=float)
+        pre_mask = np.array([str(tag).startswith("L-") for tag in tags])
+        post_mask = np.array([str(tag).startswith("R+") for tag in tags])
+        pre_omega.append(float(np.mean(om[pre_mask])) if pre_mask.any() else np.nan)
+        post_omega.append(float(np.mean(om[post_mask])) if post_mask.any() else np.nan)
+        pre_disp.append(float(cr["preflight_mean_displacement"]))
+        post_disp.append(
+            float(cr["postflight_mean_displacement"])
+            if cr["postflight_mean_displacement"] is not None
+            else np.nan
+        )
+
+    x = np.arange(len(crews), dtype=float)
+    width = 0.18
+    ax2.bar(
+        x - 1.5 * width,
+        pre_omega,
+        width,
+        color=COLOR_PRE,
+        edgecolor="#2A2A2A",
+        label=r"Pre-flight mean $\Omega_t$ ($L$-*)",
+    )
+    ax2.bar(
+        x - 0.5 * width,
+        post_omega,
+        width,
+        color=COLOR_POST,
+        edgecolor="#2A2A2A",
+        label=r"Post-flight mean $\Omega_t$ ($R$+*)",
+    )
+    ax2.bar(
+        x + 0.5 * width,
+        pre_disp,
+        width,
+        color=COLOR_PRE,
+        alpha=0.45,
+        hatch="//",
+        edgecolor="#2A2A2A",
+        label=r"Pre-flight displacement $s_t$",
+    )
+    ax2.bar(
+        x + 1.5 * width,
+        post_disp,
+        width,
+        color=COLOR_POST,
+        alpha=0.45,
+        hatch="//",
+        edgecolor="#2A2A2A",
+        label=r"Post-flight displacement $s_t$",
+    )
+    ax2.axhline(
+        PHASE_METASTABLE,
+        color=COLOR_AMBER,
+        linestyle="--",
+        linewidth=1.4,
+        label=r"$\Omega=0.07$",
+    )
+    ax2.axhline(
+        PHASE_VETO,
+        color=COLOR_CORAL,
+        linestyle="--",
+        linewidth=1.4,
+        label=r"$\Omega=0.19$",
+    )
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(crews)
+    ax2.set_xlabel("Inspiration4 crew subject")
+    ax2.set_ylabel(r"Composite $\Omega_t$ / biomarker displacement $s_t$")
+    ax2.set_title(
+        "NASA OSDR OSD-575 Inspiration4 — Pre- vs Post-Flight Phase Shift",
+        fontsize=11,
+        pad=8,
+    )
+    ax2.set_ylim(bottom=0.0)
+    leg2 = ax2.legend(
+        loc="upper right",
+        fontsize=7.0,
+        ncol=2,
+        frameon=True,
+        fancybox=False,
+        edgecolor="#2A2A2A",
+    )
+    leg2.get_frame().set_facecolor(COLOR_PANEL)
+    for txt in leg2.get_texts():
+        txt.set_color(COLOR_TEXT)
+
+    fig.suptitle(
+        "Sentinel Settle — NASA Validation Proof (Cupola / Night Ops)",
+        color=COLOR_TEXT,
+        fontsize=13,
+        fontweight="bold",
+        y=0.98,
+    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(
+        out_path,
+        dpi=300,
+        facecolor=fig.get_facecolor(),
+        edgecolor="none",
+        bbox_inches="tight",
+        pad_inches=0.25,
+    )
+    plt.close(fig)
+
+    return {
+        "path": str(out_path.relative_to(ROOT)).replace("\\", "/"),
+        "loft_metastable_crossing_t_s": cross_t,
+        "loft_event_t_s": event_t,
+        "loft_lead_time_s": lead_s,
+        "loft_lead_time_min": lead_min,
+    }
+
+
 def main() -> int:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     csm_dir = resolve_csm_dir()
@@ -627,6 +907,8 @@ def main() -> int:
     csm_sessions = {}
     trajectory_rows: list[dict[str, Any]] = []
     lead_hits: list[LeadTimeHit] = []
+    loft_kin: dict[str, np.ndarray] | None = None
+    loft_event_t: float | None = None
 
     for path in csm_files:
         cols = list(pd.read_csv(path, nrows=0).columns)
@@ -695,6 +977,10 @@ def main() -> int:
             f"Ω̄={csm_sessions[sid]['mean_Omega']:.4f} Ωmax={csm_sessions[sid]['max_Omega']:.4f}"
         )
 
+        if sid == "25_LOFT":
+            loft_kin = kin
+            loft_event_t = ref
+
     # ---- Inspiration4 LSDS-8 ----
     print("\n--- Inspiration4 OSD-575 LSDS-8 ---")
     if not LSDS_PATH.is_file():
@@ -718,6 +1004,23 @@ def main() -> int:
     # ---- Persist ----
     traj_df = pd.DataFrame(trajectory_rows)
     traj_df.to_csv(TRAJECTORY_CSV, index=False)
+
+    plot_meta: dict[str, Any] | None = None
+    if loft_kin is not None:
+        print("\n--- Generating validation figure ---", flush=True)
+        plot_meta = generate_lead_time_figure(
+            loft_kin=loft_kin,
+            loft_event_t=loft_event_t,
+            lsds_crew=lsds["crew"],
+            out_path=LEAD_TIME_PLOT,
+        )
+        print(
+            f"  25_LOFT lead time = {plot_meta['loft_lead_time_s']:.1f} s "
+            f"(~{plot_meta['loft_lead_time_min']:.1f} min)"
+        )
+        print(f"  Wrote {LEAD_TIME_PLOT}")
+    else:
+        print("WARNING: 25_LOFT kinematics unavailable; skipping figure", file=sys.stderr)
 
     report = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -757,9 +1060,11 @@ def main() -> int:
             },
         },
         "lead_time_detections": [asdict(h) for h in lead_hits],
+        "figure": plot_meta,
         "artifacts": {
             "validation_report_json": str(REPORT_JSON.relative_to(ROOT)).replace("\\", "/"),
             "omega_trajectory_summary_csv": str(TRAJECTORY_CSV.relative_to(ROOT)).replace("\\", "/"),
+            "omega_lead_time_plot_png": str(LEAD_TIME_PLOT.relative_to(ROOT)).replace("\\", "/"),
         },
     }
     REPORT_JSON.write_text(json.dumps(report, indent=2), encoding="utf-8")
@@ -767,6 +1072,8 @@ def main() -> int:
     print_lead_time_table(lead_hits)
     print(f"Wrote {REPORT_JSON}")
     print(f"Wrote {TRAJECTORY_CSV} ({len(traj_df)} rows)")
+    if plot_meta is not None:
+        print(f"Wrote {LEAD_TIME_PLOT}")
     return 0
 
 

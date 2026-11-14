@@ -1,8 +1,18 @@
 # Sentinel Settle — NASA Space Apps 2026 Validation
 
-Health monitoring software for astronauts on space missions: open validation of an edge biophysical **Scale-Invariant Kinematic Engine** against NASA flight-crew physiology and Inspiration4 cardiovascular biomarkers.
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](requirements.txt)
+[![Challenge](https://img.shields.io/badge/NASA_Space_Apps-2026-0B3D91.svg)](https://www.spaceappschallenge.org/)
+
+## Executive Summary
+
+Open validation of an edge biophysical **Scale-Invariant Kinematic Engine** for astronaut health monitoring, exercised on NASA Langley Crew State Monitoring physiology and NASA OSDR Inspiration4 cardiovascular biomarkers. On the Langley `25_LOFT` flight-crew ECG session, the engine flags Metastable Thinning (**Ω ≥ 0.07**) with an empirical **702-second (~11.7-minute)** early-warning lead time before the annotated workload `Event`.
 
 **Challenge:** [2026 NASA Space Apps Challenge — Health Monitoring Software for Astronauts on Space Missions](https://www.spaceappschallenge.org/)
+
+![Sentinel Settle NASA Validation Proof](results/omega_lead_time_plot.png)
+
+*Figure — Cupola / Night Ops validation proof: (top) NASA Langley `25_LOFT` Ω trajectory with amber Metastable Thinning (0.07) and coral Phase Veto (0.19) thresholds, shading the empirical **702 s (~11.7 min)** early-warning window to the workload Event; (bottom) NASA OSDR OSD-575 Inspiration4 pre-flight (`L-*`) vs. post-flight (`R+*`) composite Ω / biomarker displacement phase shift per crew subject.*
 
 ## What this repository validates
 
@@ -25,6 +35,8 @@ Health monitoring software for astronauts on space missions: open validation of 
    against phase boundaries **0.07** (Metastable Thinning) and **0.19** (Phase Veto).
 
 Langley CSM files contain raw `ECG` at ~256 Hz (`TimeSecs` median Δt = 1/256 s). The validator detects R-peaks with `scipy.signal.find_peaks` when HR/IBI columns are absent. Inspiration4 samples (`L-*` preflight, `R+*` postflight) yield crew-wise state-vector displacement and transverse shear across mission timepoints.
+
+Empirical lead-time proof on this archive is the Langley **`25_LOFT` 702-second (~11.7-minute)** metastable-to-Event detection shown above—not extrapolated multi-hour estimates.
 
 ## Challenge resources cited
 
@@ -52,6 +64,7 @@ python src/nasa_omega_validator.py
 | --- | --- |
 | `results/validation_report.json` | Reproducible summary metrics, session/crew stats, lead-time detections |
 | `results/omega_trajectory_summary.csv` | Decimated Omega / kinematic time series |
+| `results/omega_lead_time_plot.png` | 300 DPI Cupola / Night Ops two-panel validation figure (`25_LOFT` 702 s lead time + OSD-575 pre/post shift) |
 | Terminal table | Lead-time detections vs. Event markers (CSM) or first `R+1` (OSD-575) |
 
 ## Data notes

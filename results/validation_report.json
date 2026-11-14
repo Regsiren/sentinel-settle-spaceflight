@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-11-14T15:51:57.207776+00:00",
+  "generated_at_utc": "2026-11-14T16:50:37.565892+00:00",
   "engine": {
     "name": "Scale-Invariant Kinematic Engine",
     "epsilon": 1e-07,
@@ -755,8 +755,16 @@
       "omega_at_crossing": 0.20780756395247818
     }
   ],
+  "figure": {
+    "path": "results/omega_lead_time_plot.png",
+    "loft_metastable_crossing_t_s": 1.08203125,
+    "loft_event_t_s": 702.9453125,
+    "loft_lead_time_s": 701.86328125,
+    "loft_lead_time_min": 11.697721354166667
+  },
   "artifacts": {
     "validation_report_json": "results/validation_report.json",
-    "omega_trajectory_summary_csv": "results/omega_trajectory_summary.csv"
+    "omega_trajectory_summary_csv": "results/omega_trajectory_summary.csv",
+    "omega_lead_time_plot_png": "results/omega_lead_time_plot.png"
   }
 }
