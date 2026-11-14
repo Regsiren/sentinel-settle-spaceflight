@@ -14,6 +14,33 @@ Open validation of an edge biophysical **Scale-Invariant Kinematic Engine** for 
 
 *Figure — Cupola / Night Ops validation proof: (top) NASA Langley `25_LOFT` Ω trajectory with amber Metastable Thinning (0.07) and coral Phase Veto (0.19) thresholds, shading the empirical **702 s (~11.7 min)** early-warning window to the workload Event; (bottom) NASA OSDR OSD-575 Inspiration4 pre-flight (`L-*`) vs. post-flight (`R+*`) composite Ω / biomarker displacement phase shift per crew subject.*
 
+## Validation Scope, False-Alarm Analysis & Limitations
+
+### Proof-of-Concept Sample Size
+
+This study is early **proof-of-concept** validation on open-access NASA datasets: **N = 4** Inspiration4 orbital crew subjects in OSDR `OSD-575` (pre-/post-flight multiplex serum timepoints) plus **one** multi-scenario 256 Hz flight-crew physiology archive in NASA Langley `25.zip` (`25_CA`, `25_DA`, `25_SS`, `25_LOFT`; pooled recording duration ≈ **1.31 h**). Results are not a substitute for prospective multi-subject flight-analog trials before any operational deployment.
+
+### False-Positive & Alert Selectivity
+
+Langley excursions are scored against the ground-truth `Event` column: a detection is a **true positive** if it falls inside an active `Event` window or within a **900 s** early-warning pre-event horizon; otherwise it is a **false positive**. Metrics contrast raw instantaneous (beat-level) crossings with **sustained / gasket-filtered** alerts (≥ 5 consecutive beats above threshold), which collapses isolated spikes into alert onsets and reduces false alarms per hour.
+
+Exact pooled values from `results/validation_report.json` (reproducible via `python src/nasa_omega_validator.py`):
+
+| Threshold | Mode | TP | FP | Precision | False alarms / hour |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Metastable Thinning (Ω ≥ 0.07) | Raw beat-level | 4892 | 336 | 0.936 | 257.22 |
+| Metastable Thinning (Ω ≥ 0.07) | Raw excursion onsets | 4 | 0 | 1.000 | 0.00 |
+| Metastable Thinning (Ω ≥ 0.07) | Sustained / gasket-filtered | 4 | 0 | 1.000 | 0.00 |
+| Phase Veto (Ω ≥ 0.19) | Raw beat-level | 4836 | 336 | 0.935 | 257.22 |
+| Phase Veto (Ω ≥ 0.19) | Raw excursion onsets | 16 | 0 | 1.000 | 0.00 |
+| Phase Veto (Ω ≥ 0.19) | Sustained / gasket-filtered | 7 | 0 | 1.000 | 0.00 |
+
+**Interpretation:** Instantaneous beat-level crossings remain noisy (hundreds of FA/h on this archive). Temporal gasket filtering reduces alert burden to **0.00 FA/h** with perfect precision on these labeled Event horizons—encouraging for edge alerting, but still limited by short sessions, a generous 900 s TP horizon, and a single Langley archive. Independent baselines and longer unlabeled stretches are required before claiming operational false-alarm rates.
+
+### Closed-Loop Haptic Intervention Status
+
+The Sentinel Settle mobile prototype’s **Breath Sanctuary** is **designed for closed-loop haptic pacing** to support autonomic recovery. The app logs session coherence and heart-rate settling; controlled prospective trials that measure closed-loop $\Omega_t$ reduction under haptic pacing remain the next validation milestone and are **not** claimed by this repository.
+
 ## What this repository validates
 
 `src/nasa_omega_validator.py` ingests two NASA datasets and evaluates the Omega phase metric used for early instability detection:
@@ -62,7 +89,7 @@ python src/nasa_omega_validator.py
 
 | Artifact | Description |
 | --- | --- |
-| `results/validation_report.json` | Reproducible summary metrics, session/crew stats, lead-time detections |
+| `results/validation_report.json` | Reproducible summary metrics, session/crew stats, lead-time detections, Event-grounded false-alarm / precision analysis |
 | `results/omega_trajectory_summary.csv` | Decimated Omega / kinematic time series |
 | `results/omega_lead_time_plot.png` | 300 DPI Cupola / Night Ops two-panel validation figure (`25_LOFT` 702 s lead time + OSD-575 pre/post shift) |
 | Terminal table | Lead-time detections vs. Event markers (CSM) or first `R+1` (OSD-575) |
@@ -75,7 +102,7 @@ python src/nasa_omega_validator.py
 
 ## Prior Work & Attribution
 
-- **Sentinel Settle** Flutter/BLE mobile edge app (pre-existing): [https://github.com/Regsiren/sentinel-jolt-app](https://github.com/Regsiren/sentinel-jolt-app)
+- **Sentinel Settle** Flutter/BLE mobile edge app (pre-existing), including Breath Sanctuary **designed for closed-loop haptic pacing**: [https://github.com/Regsiren/sentinel-jolt-app](https://github.com/Regsiren/sentinel-jolt-app)
 - Zenodo preprints: [10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045), [10.5281/zenodo.20548468](https://doi.org/10.5281/zenodo.20548468)
 - The underlying kinematic governance method is the subject of a pre-existing UKIPO patent application filed by Thohat Ventures Ltd. This repository publishes an independent NASA-dataset validation implementation under Apache-2.0; it does not expand, waive, or transfer those patent rights.
 

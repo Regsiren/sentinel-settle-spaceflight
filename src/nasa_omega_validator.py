@@ -10,10 +10,10 @@ Validates the edge biophysical Omega engine against:
      (`data/nasa_raw/LSDS-8_Multiplex_serum_cardiovascular_EvePanel_TRANSFORMED.csv`)
 
 Outputs:
-  - results/validation_report.json
+  - results/validation_report.json  (incl. Event-grounded false-alarm / precision)
   - results/omega_trajectory_summary.csv
   - results/omega_lead_time_plot.png
-  - Terminal lead-time detection table
+  - Terminal lead-time + false-alarm / precision tables
 """
 
 from __future__ import annotations
@@ -79,6 +79,8 @@ PHASE_VETO = 0.19  # Phase Veto
 NOMINAL_FS_HZ = 256.0
 ECG_PEAK_DISTANCE_S = 0.30  # refractory ~300 ms
 ECG_PROMINENCE_STD = 0.45
+PRE_EVENT_HORIZON_S = 900.0  # early-warning TP window before Event onset
+GASKET_SUSTAIN_BEATS = 5  # sustained / gasket-filtered alert length
 
 
 @dataclass
@@ -320,6 +322,207 @@ def detect_rpeaks_ibi(
     return peak_times_ibi, ibi
 
 
+def extract_event_segments(
+    time_secs: np.ndarray, event: np.ndarray
+) -> list[tuple[float, float]]:
+    """Return contiguous (start_t, end_t) intervals where Event != 0."""
+    time_secs = np.asarray(time_secs, dtype=float)
+    active = np.asarray(event, dtype=float) != 0
+    if not np.any(active):
+        return []
+    idx = np.where(active)[0]
+    breaks = np.where(np.diff(idx) > 1)[0]
+    starts = np.concatenate([[idx[0]], idx[breaks + 1]])
+    ends = np.concatenate([idx[breaks], [idx[-1]]])
+    return [(float(time_secs[s]), float(time_secs[e])) for s, e in zip(starts, ends)]
+
+
+def tp_window_mask(
+    sample_t: np.ndarray,
+    event_segments: list[tuple[float, float]],
+    horizon_s: float = PRE_EVENT_HORIZON_S,
+) -> np.ndarray:
+    """
+    True where a sample falls inside an active Event window OR within
+    `horizon_s` seconds before any Event onset (early-warning TP horizon).
+    """
+    t = np.asarray(sample_t, dtype=float)
+    mask = np.zeros(len(t), dtype=bool)
+    if not event_segments:
+        return mask
+    for start, end in event_segments:
+        mask |= (t >= (start - horizon_s)) & (t <= end)
+    return mask
+
+
+def excursion_onsets(above: np.ndarray, min_len: int = 1) -> np.ndarray:
+    """Start indices of contiguous True runs with length >= min_len."""
+    above = np.asarray(above, dtype=bool)
+    if len(above) == 0:
+        return np.array([], dtype=int)
+    padded = np.concatenate([[False], above, [False]])
+    diff = np.diff(padded.astype(np.int8))
+    starts = np.where(diff == 1)[0]
+    ends = np.where(diff == -1)[0]
+    keep = (ends - starts) >= min_len
+    return starts[keep]
+
+
+def score_threshold_alerts(
+    sample_t: np.ndarray,
+    omega: np.ndarray,
+    threshold: float,
+    event_segments: list[tuple[float, float]],
+    duration_s: float,
+    horizon_s: float = PRE_EVENT_HORIZON_S,
+    gasket_beats: int = GASKET_SUSTAIN_BEATS,
+) -> dict[str, Any]:
+    """
+    Classify Omega excursions vs Event ground truth.
+
+    Raw beat-level: every sample with Omega >= threshold.
+    Sustained / gasket-filtered: contiguous runs lasting >= gasket_beats.
+    """
+    sample_t = np.asarray(sample_t, dtype=float)
+    omega = np.asarray(omega, dtype=float)
+    above = omega >= threshold
+    in_tp = tp_window_mask(sample_t, event_segments, horizon_s)
+    hours = max(duration_s, EPS) / 3600.0
+
+    def _pack(tp: int, fp: int) -> dict[str, float | int]:
+        denom = tp + fp
+        precision = (tp / denom) if denom > 0 else None
+        fa_per_h = fp / hours
+        return {
+            "true_positives": int(tp),
+            "false_positives": int(fp),
+            "precision": (float(precision) if precision is not None else None),
+            "false_alarms_per_hour": float(fa_per_h),
+        }
+
+    # Beat-level / sample-level
+    raw_tp = int(np.sum(above & in_tp))
+    raw_fp = int(np.sum(above & ~in_tp))
+    raw = _pack(raw_tp, raw_fp)
+
+    # Excursion onsets (contiguous runs of length >= 1)
+    raw_onset_idx = excursion_onsets(above, min_len=1)
+    raw_onset_tp = int(np.sum(in_tp[raw_onset_idx])) if len(raw_onset_idx) else 0
+    raw_onset_fp = int(len(raw_onset_idx) - raw_onset_tp)
+    raw_excursion = _pack(raw_onset_tp, raw_onset_fp)
+
+    # Sustained / gasket-filtered alert onsets
+    sus_onset_idx = excursion_onsets(above, min_len=gasket_beats)
+    sus_tp = int(np.sum(in_tp[sus_onset_idx])) if len(sus_onset_idx) else 0
+    sus_fp = int(len(sus_onset_idx) - sus_tp)
+    sustained = _pack(sus_tp, sus_fp)
+
+    return {
+        "threshold": float(threshold),
+        "raw_beat_level": raw,
+        "raw_excursion_onsets": raw_excursion,
+        "sustained_gasket_filtered": sustained,
+        "n_raw_beats_above": int(np.sum(above)),
+        "n_raw_excursion_onsets": int(len(raw_onset_idx)),
+        "n_sustained_alerts": int(len(sus_onset_idx)),
+    }
+
+
+def aggregate_false_alarm_metrics(
+    session_scores: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """Pool TP/FP across Langley sessions for each threshold and filter mode."""
+    modes = ("raw_beat_level", "raw_excursion_onsets", "sustained_gasket_filtered")
+    thresholds = {
+        "metastable_thinning": PHASE_METASTABLE,
+        "phase_veto": PHASE_VETO,
+    }
+    total_duration_s = sum(
+        float(s.get("duration_s", 0.0)) for s in session_scores.values()
+    )
+    hours = max(total_duration_s, EPS) / 3600.0
+    pooled: dict[str, Any] = {
+        "pre_event_horizon_s": PRE_EVENT_HORIZON_S,
+        "gasket_sustain_beats": GASKET_SUSTAIN_BEATS,
+        "total_duration_s": float(total_duration_s),
+        "total_duration_h": float(hours),
+        "by_threshold": {},
+        "sessions": session_scores,
+    }
+    for thr_name, thr in thresholds.items():
+        by_mode: dict[str, Any] = {}
+        for mode in modes:
+            tp = fp = 0
+            for sess in session_scores.values():
+                block = sess["thresholds"][thr_name][mode]
+                tp += int(block["true_positives"])
+                fp += int(block["false_positives"])
+            denom = tp + fp
+            by_mode[mode] = {
+                "true_positives": tp,
+                "false_positives": fp,
+                "precision": (float(tp / denom) if denom > 0 else None),
+                "false_alarms_per_hour": float(fp / hours),
+            }
+        pooled["by_threshold"][thr_name] = {
+            "threshold": thr,
+            **by_mode,
+        }
+    return pooled
+
+
+def print_false_alarm_table(fa_report: dict[str, Any]) -> None:
+    """Terminal summary of TP / FP / precision / FA-per-hour."""
+    headers = (
+        "Threshold",
+        "Mode",
+        "TP",
+        "FP",
+        "Precision",
+        "FA/hour",
+    )
+    rows: list[list[str]] = []
+    labels = {
+        "raw_beat_level": "Raw beat-level",
+        "raw_excursion_onsets": "Raw excursion",
+        "sustained_gasket_filtered": "Sustained/gasket",
+    }
+    thr_labels = {
+        "metastable_thinning": "Metastable 0.07",
+        "phase_veto": "Phase Veto 0.19",
+    }
+    for thr_key, thr_block in fa_report["by_threshold"].items():
+        for mode, label in labels.items():
+            m = thr_block[mode]
+            prec = m["precision"]
+            rows.append(
+                [
+                    thr_labels[thr_key],
+                    label,
+                    str(m["true_positives"]),
+                    str(m["false_positives"]),
+                    f"{prec:.3f}" if prec is not None else "—",
+                    f"{m['false_alarms_per_hour']:.2f}",
+                ]
+            )
+    widths = [
+        max(len(h), *(len(r[i]) for r in rows)) for i, h in enumerate(headers)
+    ]
+    sep = "-+-".join("-" * w for w in widths)
+    fmt = " | ".join(f"{{:{w}}}" for w in widths)
+    print("\n=== False-Alarm & Precision (Event ground truth, 900 s pre-event horizon) ===")
+    print(
+        f"  Pooled Langley duration = {fa_report['total_duration_s']:.1f} s "
+        f"({fa_report['total_duration_h']:.3f} h); "
+        f"gasket sustain = {fa_report['gasket_sustain_beats']} beats"
+    )
+    print(fmt.format(*headers))
+    print(sep)
+    for r in rows:
+        print(fmt.format(*r))
+    print()
+
+
 def ingest_csm_csv(path: Path) -> dict[str, Any]:
     """Ingest one Langley CSM CSV: prefer HR/IBI columns, else ECG R-peaks."""
     usecols = None
@@ -375,11 +578,14 @@ def ingest_csm_csv(path: Path) -> dict[str, Any]:
         )
         source = "ecg_rpeaks"
 
-    kin = run_kinematic_engine(ibi, sample_times=peak_times if len(peak_times) == len(ibi) else None)
+    # Align kinematic sample times to beat timeline
+    sample_times = peak_times if len(peak_times) == len(ibi) else None
+    kin = run_kinematic_engine(ibi, sample_times=sample_times)
 
     # Reference event: first non-zero Event marker in the raw timeline
     event_idx = np.where(event != 0)[0]
     ref_event_t = float(time_secs[event_idx[0]]) if len(event_idx) else None
+    event_segments = extract_event_segments(time_secs, event)
 
     meta = {
         "file": path.name,
@@ -392,8 +598,19 @@ def ingest_csm_csv(path: Path) -> dict[str, Any]:
         "mean_ibi_s": float(np.mean(ibi)) if len(ibi) else None,
         "mean_hr_bpm": float(60.0 / np.mean(ibi)) if len(ibi) else None,
         "reference_event_t_s": ref_event_t,
+        "n_event_segments": len(event_segments),
+        "event_segments": [
+            {"start_t_s": float(a), "end_t_s": float(b)} for a, b in event_segments
+        ],
     }
-    return {"meta": meta, "kin": kin, "ibi": ibi}
+    return {
+        "meta": meta,
+        "kin": kin,
+        "ibi": ibi,
+        "time_secs": time_secs,
+        "event": event,
+        "event_segments": event_segments,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -909,6 +1126,7 @@ def main() -> int:
     lead_hits: list[LeadTimeHit] = []
     loft_kin: dict[str, np.ndarray] | None = None
     loft_event_t: float | None = None
+    fa_session_scores: dict[str, dict[str, Any]] = {}
 
     for path in csm_files:
         cols = list(pd.read_csv(path, nrows=0).columns)
@@ -920,6 +1138,32 @@ def main() -> int:
         meta = session["meta"]
         kin = session["kin"]
         sid = path.stem  # 25_CA, 25_DA, ...
+        duration_s = float(meta["duration_s"])
+        event_segments = session["event_segments"]
+
+        # Event-grounded false-alarm / precision scoring
+        thr_scores = {
+            "metastable_thinning": score_threshold_alerts(
+                kin["t"],
+                kin["Omega_t"],
+                PHASE_METASTABLE,
+                event_segments,
+                duration_s,
+            ),
+            "phase_veto": score_threshold_alerts(
+                kin["t"],
+                kin["Omega_t"],
+                PHASE_VETO,
+                event_segments,
+                duration_s,
+            ),
+        }
+        fa_session_scores[sid] = {
+            "duration_s": duration_s,
+            "n_event_segments": len(event_segments),
+            "thresholds": thr_scores,
+        }
+
         csm_sessions[sid] = {
             **meta,
             "mean_Omega": float(np.mean(kin["Omega_t"])),
@@ -929,6 +1173,7 @@ def main() -> int:
             "mean_F_c": float(np.mean(kin["F_c"])),
             "pct_metastable": float(np.mean(kin["Omega_t"] >= PHASE_METASTABLE) * 100.0),
             "pct_veto": float(np.mean(kin["Omega_t"] >= PHASE_VETO) * 100.0),
+            "false_alarm_metrics": thr_scores,
         }
 
         # Decimate trajectory for CSV summary (keep up to ~500 points)
@@ -972,14 +1217,18 @@ def main() -> int:
                 )
             )
 
+        meta_fa = thr_scores["metastable_thinning"]["sustained_gasket_filtered"]
         print(
             f"    IBI n={meta['n_ibi']} mean_HR={meta['mean_hr_bpm']:.1f} bpm  "
-            f"Ω̄={csm_sessions[sid]['mean_Omega']:.4f} Ωmax={csm_sessions[sid]['max_Omega']:.4f}"
+            f"Ω̄={csm_sessions[sid]['mean_Omega']:.4f} Ωmax={csm_sessions[sid]['max_Omega']:.4f}  "
+            f"sustained_FA/h(0.07)={meta_fa['false_alarms_per_hour']:.2f}"
         )
 
         if sid == "25_LOFT":
             loft_kin = kin
             loft_event_t = ref
+
+    fa_report = aggregate_false_alarm_metrics(fa_session_scores)
 
     # ---- Inspiration4 LSDS-8 ----
     print("\n--- Inspiration4 OSD-575 LSDS-8 ---")
@@ -1060,6 +1309,7 @@ def main() -> int:
             },
         },
         "lead_time_detections": [asdict(h) for h in lead_hits],
+        "false_alarm_analysis": fa_report,
         "figure": plot_meta,
         "artifacts": {
             "validation_report_json": str(REPORT_JSON.relative_to(ROOT)).replace("\\", "/"),
@@ -1070,6 +1320,7 @@ def main() -> int:
     REPORT_JSON.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
     print_lead_time_table(lead_hits)
+    print_false_alarm_table(fa_report)
     print(f"Wrote {REPORT_JSON}")
     print(f"Wrote {TRAJECTORY_CSV} ({len(traj_df)} rows)")
     if plot_meta is not None:

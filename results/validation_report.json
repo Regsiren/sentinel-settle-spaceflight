@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-11-14T16:50:37.565892+00:00",
+  "generated_at_utc": "2026-11-14T18:00:19.266440+00:00",
   "engine": {
     "name": "Scale-Invariant Kinematic Engine",
     "epsilon": 1e-07,
@@ -56,13 +56,70 @@
           "mean_ibi_s": 0.7468155618448635,
           "mean_hr_bpm": 80.34112177815577,
           "reference_event_t_s": 0.6559999999999999,
+          "n_event_segments": 1,
+          "event_segments": [
+            {
+              "start_t_s": 0.6559999999999999,
+              "end_t_s": 360.051025
+            }
+          ],
           "mean_Omega": 0.44852650045501036,
           "max_Omega": 1.6766440759500172,
           "mean_a_perp": 0.45979819007974304,
           "max_a_perp": 3.792563946667778,
           "mean_F_c": 13.325739782727858,
           "pct_metastable": 100.0,
-          "pct_veto": 99.16142557651992
+          "pct_veto": 99.16142557651992,
+          "false_alarm_metrics": {
+            "metastable_thinning": {
+              "threshold": 0.07,
+              "raw_beat_level": {
+                "true_positives": 477,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "raw_excursion_onsets": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "n_raw_beats_above": 477,
+              "n_raw_excursion_onsets": 1,
+              "n_sustained_alerts": 1
+            },
+            "phase_veto": {
+              "threshold": 0.19,
+              "raw_beat_level": {
+                "true_positives": 473,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "raw_excursion_onsets": {
+                "true_positives": 3,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "n_raw_beats_above": 473,
+              "n_raw_excursion_onsets": 3,
+              "n_sustained_alerts": 1
+            }
+          }
         },
         "25_DA": {
           "file": "25_DA.csv",
@@ -102,13 +159,106 @@
           "mean_ibi_s": 0.7126891121031746,
           "mean_hr_bpm": 84.18818104704526,
           "reference_event_t_s": 31.73046875,
+          "n_event_segments": 10,
+          "event_segments": [
+            {
+              "start_t_s": 31.73046875,
+              "end_t_s": 36.73046875
+            },
+            {
+              "start_t_s": 68.71484375,
+              "end_t_s": 77.3125
+            },
+            {
+              "start_t_s": 107.54296875,
+              "end_t_s": 112.54296875
+            },
+            {
+              "start_t_s": 140.46484375,
+              "end_t_s": 148.37109375
+            },
+            {
+              "start_t_s": 180.27734375,
+              "end_t_s": 185.27734375
+            },
+            {
+              "start_t_s": 212.9296875,
+              "end_t_s": 219.9765625
+            },
+            {
+              "start_t_s": 241.21875,
+              "end_t_s": 246.21875
+            },
+            {
+              "start_t_s": 283.12890625,
+              "end_t_s": 288.12890625
+            },
+            {
+              "start_t_s": 320.45703125,
+              "end_t_s": 326.3046875
+            },
+            {
+              "start_t_s": 357.171875,
+              "end_t_s": 359.80078125
+            }
+          ],
           "mean_Omega": 0.5943963079227381,
           "max_Omega": 2.659707211816667,
           "mean_a_perp": 0.618222849957492,
           "max_a_perp": 5.069289280306422,
           "mean_F_c": 18.206691541612972,
           "pct_metastable": 100.0,
-          "pct_veto": 99.20634920634922
+          "pct_veto": 99.20634920634922,
+          "false_alarm_metrics": {
+            "metastable_thinning": {
+              "threshold": 0.07,
+              "raw_beat_level": {
+                "true_positives": 504,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "raw_excursion_onsets": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "n_raw_beats_above": 504,
+              "n_raw_excursion_onsets": 1,
+              "n_sustained_alerts": 1
+            },
+            "phase_veto": {
+              "threshold": 0.19,
+              "raw_beat_level": {
+                "true_positives": 500,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "raw_excursion_onsets": {
+                "true_positives": 3,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "n_raw_beats_above": 500,
+              "n_raw_excursion_onsets": 3,
+              "n_sustained_alerts": 1
+            }
+          }
         },
         "25_LOFT": {
           "file": "25_LOFT.csv",
@@ -148,13 +298,90 @@
           "mean_ibi_s": 0.9297111430921052,
           "mean_hr_bpm": 64.53617389208368,
           "reference_event_t_s": 702.9453125,
+          "n_event_segments": 6,
+          "event_segments": [
+            {
+              "start_t_s": 702.9453125,
+              "end_t_s": 717.9453125
+            },
+            {
+              "start_t_s": 1033.0,
+              "end_t_s": 1121.00390625
+            },
+            {
+              "start_t_s": 1297.0,
+              "end_t_s": 1310.0
+            },
+            {
+              "start_t_s": 2130.59765625,
+              "end_t_s": 2260.08984375
+            },
+            {
+              "start_t_s": 3210.0,
+              "end_t_s": 3223.0
+            },
+            {
+              "start_t_s": 3453.98828125,
+              "end_t_s": 3468.98828125
+            }
+          ],
           "mean_Omega": 0.3834300173229309,
           "max_Omega": 1.285838968527174,
           "mean_a_perp": 0.3304437737698626,
           "max_a_perp": 3.2392252439937406,
           "mean_F_c": 9.886752393222734,
           "pct_metastable": 100.0,
-          "pct_veto": 98.81578947368422
+          "pct_veto": 98.81578947368422,
+          "false_alarm_metrics": {
+            "metastable_thinning": {
+              "threshold": 0.07,
+              "raw_beat_level": {
+                "true_positives": 3558,
+                "false_positives": 242,
+                "precision": 0.9363157894736842,
+                "false_alarms_per_hour": 240.46603750597052
+              },
+              "raw_excursion_onsets": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "n_raw_beats_above": 3800,
+              "n_raw_excursion_onsets": 1,
+              "n_sustained_alerts": 1
+            },
+            "phase_veto": {
+              "threshold": 0.19,
+              "raw_beat_level": {
+                "true_positives": 3513,
+                "false_positives": 242,
+                "precision": 0.9355525965379494,
+                "false_alarms_per_hour": 240.46603750597052
+              },
+              "raw_excursion_onsets": {
+                "true_positives": 8,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 3,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "n_raw_beats_above": 3755,
+              "n_raw_excursion_onsets": 8,
+              "n_sustained_alerts": 3
+            }
+          }
         },
         "25_SS": {
           "file": "25_SS.csv",
@@ -194,13 +421,74 @@
           "mean_ibi_s": 0.8017919843400448,
           "mean_hr_bpm": 74.83237694049288,
           "reference_event_t_s": 84.733002,
+          "n_event_segments": 2,
+          "event_segments": [
+            {
+              "start_t_s": 84.733002,
+              "end_t_s": 99.749008
+            },
+            {
+              "start_t_s": 273.786011,
+              "end_t_s": 288.815002
+            }
+          ],
           "mean_Omega": 0.564273731757743,
           "max_Omega": 2.0444602886038163,
           "mean_a_perp": 0.5764430162611791,
           "max_a_perp": 4.1901026654025575,
           "mean_F_c": 16.62191936578532,
           "pct_metastable": 100.0,
-          "pct_veto": 99.32885906040269
+          "pct_veto": 99.32885906040269,
+          "false_alarm_metrics": {
+            "metastable_thinning": {
+              "threshold": 0.07,
+              "raw_beat_level": {
+                "true_positives": 353,
+                "false_positives": 94,
+                "precision": 0.7897091722595079,
+                "false_alarms_per_hour": 940.4074707203342
+              },
+              "raw_excursion_onsets": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 1,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "n_raw_beats_above": 447,
+              "n_raw_excursion_onsets": 1,
+              "n_sustained_alerts": 1
+            },
+            "phase_veto": {
+              "threshold": 0.19,
+              "raw_beat_level": {
+                "true_positives": 350,
+                "false_positives": 94,
+                "precision": 0.7882882882882883,
+                "false_alarms_per_hour": 940.4074707203342
+              },
+              "raw_excursion_onsets": {
+                "true_positives": 2,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 2,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0
+              },
+              "n_raw_beats_above": 444,
+              "n_raw_excursion_onsets": 2,
+              "n_sustained_alerts": 2
+            }
+          }
         }
       }
     },
@@ -755,6 +1043,274 @@
       "omega_at_crossing": 0.20780756395247818
     }
   ],
+  "false_alarm_analysis": {
+    "pre_event_horizon_s": 900.0,
+    "gasket_sustain_beats": 5,
+    "total_duration_s": 4702.531665,
+    "total_duration_h": 1.3062587958333334,
+    "by_threshold": {
+      "metastable_thinning": {
+        "threshold": 0.07,
+        "raw_beat_level": {
+          "true_positives": 4892,
+          "false_positives": 336,
+          "precision": 0.9357306809487376,
+          "false_alarms_per_hour": 257.2231483315275
+        },
+        "raw_excursion_onsets": {
+          "true_positives": 4,
+          "false_positives": 0,
+          "precision": 1.0,
+          "false_alarms_per_hour": 0.0
+        },
+        "sustained_gasket_filtered": {
+          "true_positives": 4,
+          "false_positives": 0,
+          "precision": 1.0,
+          "false_alarms_per_hour": 0.0
+        }
+      },
+      "phase_veto": {
+        "threshold": 0.19,
+        "raw_beat_level": {
+          "true_positives": 4836,
+          "false_positives": 336,
+          "precision": 0.9350348027842227,
+          "false_alarms_per_hour": 257.2231483315275
+        },
+        "raw_excursion_onsets": {
+          "true_positives": 16,
+          "false_positives": 0,
+          "precision": 1.0,
+          "false_alarms_per_hour": 0.0
+        },
+        "sustained_gasket_filtered": {
+          "true_positives": 7,
+          "false_positives": 0,
+          "precision": 1.0,
+          "false_alarms_per_hour": 0.0
+        }
+      }
+    },
+    "sessions": {
+      "25_CA": {
+        "duration_s": 360.04702499999996,
+        "n_event_segments": 1,
+        "thresholds": {
+          "metastable_thinning": {
+            "threshold": 0.07,
+            "raw_beat_level": {
+              "true_positives": 477,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "raw_excursion_onsets": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "n_raw_beats_above": 477,
+            "n_raw_excursion_onsets": 1,
+            "n_sustained_alerts": 1
+          },
+          "phase_veto": {
+            "threshold": 0.19,
+            "raw_beat_level": {
+              "true_positives": 473,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "raw_excursion_onsets": {
+              "true_positives": 3,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "n_raw_beats_above": 473,
+            "n_raw_excursion_onsets": 3,
+            "n_sustained_alerts": 1
+          }
+        }
+      },
+      "25_DA": {
+        "duration_s": 359.67578125,
+        "n_event_segments": 10,
+        "thresholds": {
+          "metastable_thinning": {
+            "threshold": 0.07,
+            "raw_beat_level": {
+              "true_positives": 504,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "raw_excursion_onsets": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "n_raw_beats_above": 504,
+            "n_raw_excursion_onsets": 1,
+            "n_sustained_alerts": 1
+          },
+          "phase_veto": {
+            "threshold": 0.19,
+            "raw_beat_level": {
+              "true_positives": 500,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "raw_excursion_onsets": {
+              "true_positives": 3,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "n_raw_beats_above": 500,
+            "n_raw_excursion_onsets": 3,
+            "n_sustained_alerts": 1
+          }
+        }
+      },
+      "25_LOFT": {
+        "duration_s": 3622.96484375,
+        "n_event_segments": 6,
+        "thresholds": {
+          "metastable_thinning": {
+            "threshold": 0.07,
+            "raw_beat_level": {
+              "true_positives": 3558,
+              "false_positives": 242,
+              "precision": 0.9363157894736842,
+              "false_alarms_per_hour": 240.46603750597052
+            },
+            "raw_excursion_onsets": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "n_raw_beats_above": 3800,
+            "n_raw_excursion_onsets": 1,
+            "n_sustained_alerts": 1
+          },
+          "phase_veto": {
+            "threshold": 0.19,
+            "raw_beat_level": {
+              "true_positives": 3513,
+              "false_positives": 242,
+              "precision": 0.9355525965379494,
+              "false_alarms_per_hour": 240.46603750597052
+            },
+            "raw_excursion_onsets": {
+              "true_positives": 8,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 3,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "n_raw_beats_above": 3755,
+            "n_raw_excursion_onsets": 8,
+            "n_sustained_alerts": 3
+          }
+        }
+      },
+      "25_SS": {
+        "duration_s": 359.844015,
+        "n_event_segments": 2,
+        "thresholds": {
+          "metastable_thinning": {
+            "threshold": 0.07,
+            "raw_beat_level": {
+              "true_positives": 353,
+              "false_positives": 94,
+              "precision": 0.7897091722595079,
+              "false_alarms_per_hour": 940.4074707203342
+            },
+            "raw_excursion_onsets": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 1,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "n_raw_beats_above": 447,
+            "n_raw_excursion_onsets": 1,
+            "n_sustained_alerts": 1
+          },
+          "phase_veto": {
+            "threshold": 0.19,
+            "raw_beat_level": {
+              "true_positives": 350,
+              "false_positives": 94,
+              "precision": 0.7882882882882883,
+              "false_alarms_per_hour": 940.4074707203342
+            },
+            "raw_excursion_onsets": {
+              "true_positives": 2,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 2,
+              "false_positives": 0,
+              "precision": 1.0,
+              "false_alarms_per_hour": 0.0
+            },
+            "n_raw_beats_above": 444,
+            "n_raw_excursion_onsets": 2,
+            "n_sustained_alerts": 2
+          }
+        }
+      }
+    }
+  },
   "figure": {
     "path": "results/omega_lead_time_plot.png",
     "loft_metastable_crossing_t_s": 1.08203125,
