@@ -63,7 +63,7 @@ python src/nasa_omega_validator.py
 ## Prior Work & Attribution
 
 - **Sentinel Settle** Flutter/BLE mobile edge app (pre-existing): [https://github.com/Regsiren/sentinel-jolt-app](https://github.com/Regsiren/sentinel-jolt-app)
-- Zenodo preprints: [10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045), [10.5281/zenodo.20548469](https://doi.org/10.5281/zenodo.20548469)
+- Zenodo preprints: [10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045), [10.5281/zenodo.20548468](https://doi.org/10.5281/zenodo.20548468)
 - The underlying kinematic governance method is the subject of a pre-existing UKIPO patent application filed by Thohat Ventures Ltd. This repository publishes an independent NASA-dataset validation implementation under Apache-2.0; it does not expand, waive, or transfer those patent rights.
 
 ## License
