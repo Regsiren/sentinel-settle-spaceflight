@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-11-14T18:00:19.266440+00:00",
+  "generated_at_utc": "2026-11-14T19:00:26.018814+00:00",
   "engine": {
     "name": "Scale-Invariant Kinematic Engine",
     "epsilon": 1e-07,
@@ -63,63 +63,122 @@
               "end_t_s": 360.051025
             }
           ],
+          "omega_offset": 0.2660114540495119,
           "mean_Omega": 0.44852650045501036,
-          "max_Omega": 1.6766440759500172,
+          "mean_Omega_cal": 0.1845169778501276,
+          "max_Omega_cal": 1.4106326219005054,
+          "pct_metastable_cal": 83.01886792452831,
+          "pct_veto_cal": 36.68763102725367,
           "mean_a_perp": 0.45979819007974304,
           "max_a_perp": 3.792563946667778,
           "mean_F_c": 13.325739782727858,
-          "pct_metastable": 100.0,
-          "pct_veto": 99.16142557651992,
-          "false_alarm_metrics": {
+          "baseline_hr_bpm": 68.25083252736258,
+          "baseline_rmssd_s": 0.32832882875294156,
+          "false_alarm_metrics_tactical_180s": {
             "metastable_thinning": {
-              "threshold": 0.07,
+              "horizon_s": 180.0,
+              "gasket_beats": 5,
               "raw_beat_level": {
-                "true_positives": 477,
+                "true_positives": 396,
                 "false_positives": 0,
                 "precision": 1.0,
-                "false_alarms_per_hour": 0.0
-              },
-              "raw_excursion_onsets": {
-                "true_positives": 1,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 1,
+                "events_detected_tp": 1,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
               "sustained_gasket_filtered": {
-                "true_positives": 1,
+                "true_positives": 15,
                 "false_positives": 0,
                 "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 1,
+                "events_detected_tp": 1,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
-              "n_raw_beats_above": 477,
-              "n_raw_excursion_onsets": 1,
-              "n_sustained_alerts": 1
+              "n_sustained_alerts": 15
             },
             "phase_veto": {
-              "threshold": 0.19,
+              "horizon_s": 180.0,
+              "gasket_beats": 5,
               "raw_beat_level": {
-                "true_positives": 473,
+                "true_positives": 175,
                 "false_positives": 0,
                 "precision": 1.0,
-                "false_alarms_per_hour": 0.0
-              },
-              "raw_excursion_onsets": {
-                "true_positives": 3,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 1,
+                "events_detected_tp": 1,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
               "sustained_gasket_filtered": {
-                "true_positives": 1,
+                "true_positives": 6,
                 "false_positives": 0,
                 "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 1,
+                "events_detected_tp": 1,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
-              "n_raw_beats_above": 473,
-              "n_raw_excursion_onsets": 3,
-              "n_sustained_alerts": 1
+              "n_sustained_alerts": 6
             }
-          }
+          },
+          "false_alarm_metrics_mission_900s": {
+            "metastable_thinning": {
+              "horizon_s": 900.0,
+              "gasket_beats": 5,
+              "raw_beat_level": {
+                "true_positives": 396,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 1,
+                "events_detected_tp": 1,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 15,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 1,
+                "events_detected_tp": 1,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "n_sustained_alerts": 15
+            },
+            "phase_veto": {
+              "horizon_s": 900.0,
+              "gasket_beats": 5,
+              "raw_beat_level": {
+                "true_positives": 175,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 1,
+                "events_detected_tp": 1,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 6,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 1,
+                "events_detected_tp": 1,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "n_sustained_alerts": 6
+            }
+          },
+          "gasket_mean_seconds": 3.734077809224318
         },
         "25_DA": {
           "file": "25_DA.csv",
@@ -202,63 +261,122 @@
               "end_t_s": 359.80078125
             }
           ],
+          "omega_offset": 0.2656273314180502,
           "mean_Omega": 0.5943963079227381,
-          "max_Omega": 2.659707211816667,
+          "mean_Omega_cal": 0.33028521129489047,
+          "max_Omega_cal": 2.3940798803986167,
+          "pct_metastable_cal": 94.44444444444444,
+          "pct_veto_cal": 63.29365079365079,
           "mean_a_perp": 0.618222849957492,
           "max_a_perp": 5.069289280306422,
           "mean_F_c": 18.206691541612972,
-          "pct_metastable": 100.0,
-          "pct_veto": 99.20634920634922,
-          "false_alarm_metrics": {
+          "baseline_hr_bpm": 77.52250190694127,
+          "baseline_rmssd_s": 0.3483216610094482,
+          "false_alarm_metrics_tactical_180s": {
             "metastable_thinning": {
-              "threshold": 0.07,
+              "horizon_s": 180.0,
+              "gasket_beats": 5,
               "raw_beat_level": {
-                "true_positives": 504,
+                "true_positives": 476,
                 "false_positives": 0,
                 "precision": 1.0,
-                "false_alarms_per_hour": 0.0
-              },
-              "raw_excursion_onsets": {
-                "true_positives": 1,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 10,
+                "events_detected_tp": 10,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
               "sustained_gasket_filtered": {
-                "true_positives": 1,
+                "true_positives": 10,
                 "false_positives": 0,
                 "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 10,
+                "events_detected_tp": 10,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
-              "n_raw_beats_above": 504,
-              "n_raw_excursion_onsets": 1,
-              "n_sustained_alerts": 1
+              "n_sustained_alerts": 10
             },
             "phase_veto": {
-              "threshold": 0.19,
+              "horizon_s": 180.0,
+              "gasket_beats": 5,
               "raw_beat_level": {
-                "true_positives": 500,
+                "true_positives": 319,
                 "false_positives": 0,
                 "precision": 1.0,
-                "false_alarms_per_hour": 0.0
-              },
-              "raw_excursion_onsets": {
-                "true_positives": 3,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 10,
+                "events_detected_tp": 10,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
               "sustained_gasket_filtered": {
-                "true_positives": 1,
+                "true_positives": 8,
                 "false_positives": 0,
                 "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 10,
+                "events_detected_tp": 10,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
-              "n_raw_beats_above": 500,
-              "n_raw_excursion_onsets": 3,
-              "n_sustained_alerts": 1
+              "n_sustained_alerts": 8
             }
-          }
+          },
+          "false_alarm_metrics_mission_900s": {
+            "metastable_thinning": {
+              "horizon_s": 900.0,
+              "gasket_beats": 5,
+              "raw_beat_level": {
+                "true_positives": 476,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 10,
+                "events_detected_tp": 10,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 10,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 10,
+                "events_detected_tp": 10,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "n_sustained_alerts": 10
+            },
+            "phase_veto": {
+              "horizon_s": 900.0,
+              "gasket_beats": 5,
+              "raw_beat_level": {
+                "true_positives": 319,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 10,
+                "events_detected_tp": 10,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 8,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 10,
+                "events_detected_tp": 10,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "n_sustained_alerts": 8
+            }
+          },
+          "gasket_mean_seconds": 3.5634455605158735
         },
         "25_LOFT": {
           "file": "25_LOFT.csv",
@@ -325,63 +443,122 @@
               "end_t_s": 3468.98828125
             }
           ],
+          "omega_offset": 0.19733522155672434,
           "mean_Omega": 0.3834300173229309,
-          "max_Omega": 1.285838968527174,
+          "mean_Omega_cal": 0.18638796147366465,
+          "max_Omega_cal": 1.0885037469704497,
+          "pct_metastable_cal": 90.78947368421053,
+          "pct_veto_cal": 41.23684210526316,
           "mean_a_perp": 0.3304437737698626,
           "max_a_perp": 3.2392252439937406,
           "mean_F_c": 9.886752393222734,
-          "pct_metastable": 100.0,
-          "pct_veto": 98.81578947368422,
-          "false_alarm_metrics": {
+          "baseline_hr_bpm": 71.94734532689776,
+          "baseline_rmssd_s": 0.36925286771981236,
+          "false_alarm_metrics_tactical_180s": {
             "metastable_thinning": {
-              "threshold": 0.07,
+              "horizon_s": 180.0,
+              "gasket_beats": 5,
               "raw_beat_level": {
-                "true_positives": 3558,
-                "false_positives": 242,
-                "precision": 0.9363157894736842,
-                "false_alarms_per_hour": 240.46603750597052
-              },
-              "raw_excursion_onsets": {
-                "true_positives": 1,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "true_positives": 1297,
+                "false_positives": 2153,
+                "precision": 0.37594202898550727,
+                "false_alarms_per_hour": 2139.352804753531,
+                "total_ground_truth_events": 6,
+                "events_detected_tp": 6,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
               "sustained_gasket_filtered": {
-                "true_positives": 1,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "true_positives": 17,
+                "false_positives": 25,
+                "precision": 0.40476190476190477,
+                "false_alarms_per_hour": 24.841532800203566,
+                "total_ground_truth_events": 6,
+                "events_detected_tp": 5,
+                "events_missed_fn": 1,
+                "event_recall": 0.8333333333333334
               },
-              "n_raw_beats_above": 3800,
-              "n_raw_excursion_onsets": 1,
-              "n_sustained_alerts": 1
+              "n_sustained_alerts": 42
             },
             "phase_veto": {
-              "threshold": 0.19,
+              "horizon_s": 180.0,
+              "gasket_beats": 5,
               "raw_beat_level": {
-                "true_positives": 3513,
-                "false_positives": 242,
-                "precision": 0.9355525965379494,
-                "false_alarms_per_hour": 240.46603750597052
-              },
-              "raw_excursion_onsets": {
-                "true_positives": 8,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "true_positives": 584,
+                "false_positives": 983,
+                "precision": 0.37268666241225273,
+                "false_alarms_per_hour": 976.7690697040042,
+                "total_ground_truth_events": 6,
+                "events_detected_tp": 6,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
               "sustained_gasket_filtered": {
-                "true_positives": 3,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "true_positives": 19,
+                "false_positives": 26,
+                "precision": 0.4222222222222222,
+                "false_alarms_per_hour": 25.835194112211706,
+                "total_ground_truth_events": 6,
+                "events_detected_tp": 6,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
-              "n_raw_beats_above": 3755,
-              "n_raw_excursion_onsets": 8,
-              "n_sustained_alerts": 3
+              "n_sustained_alerts": 45
             }
-          }
+          },
+          "false_alarm_metrics_mission_900s": {
+            "metastable_thinning": {
+              "horizon_s": 900.0,
+              "gasket_beats": 5,
+              "raw_beat_level": {
+                "true_positives": 3228,
+                "false_positives": 222,
+                "precision": 0.9356521739130435,
+                "false_alarms_per_hour": 220.59281126580765,
+                "total_ground_truth_events": 6,
+                "events_detected_tp": 6,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 38,
+                "false_positives": 4,
+                "precision": 0.9047619047619048,
+                "false_alarms_per_hour": 3.9746452480325702,
+                "total_ground_truth_events": 6,
+                "events_detected_tp": 6,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "n_sustained_alerts": 42
+            },
+            "phase_veto": {
+              "horizon_s": 900.0,
+              "gasket_beats": 5,
+              "raw_beat_level": {
+                "true_positives": 1487,
+                "false_positives": 80,
+                "precision": 0.9489470325462668,
+                "false_alarms_per_hour": 79.4929049606514,
+                "total_ground_truth_events": 6,
+                "events_detected_tp": 6,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 43,
+                "false_positives": 2,
+                "precision": 0.9555555555555556,
+                "false_alarms_per_hour": 1.9873226240162851,
+                "total_ground_truth_events": 6,
+                "events_detected_tp": 6,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "n_sustained_alerts": 45
+            }
+          },
+          "gasket_mean_seconds": 4.648555715460526
         },
         "25_SS": {
           "file": "25_SS.csv",
@@ -432,63 +609,122 @@
               "end_t_s": 288.815002
             }
           ],
+          "omega_offset": 0.4023016587478993,
           "mean_Omega": 0.564273731757743,
-          "max_Omega": 2.0444602886038163,
+          "mean_Omega_cal": 0.17180450674407224,
+          "max_Omega_cal": 1.642158629855917,
+          "pct_metastable_cal": 62.639821029082775,
+          "pct_veto_cal": 24.832214765100673,
           "mean_a_perp": 0.5764430162611791,
           "max_a_perp": 4.1901026654025575,
           "mean_F_c": 16.62191936578532,
-          "pct_metastable": 100.0,
-          "pct_veto": 99.32885906040269,
-          "false_alarm_metrics": {
+          "baseline_hr_bpm": 62.86922564274201,
+          "baseline_rmssd_s": 0.5570017323313087,
+          "false_alarm_metrics_tactical_180s": {
             "metastable_thinning": {
-              "threshold": 0.07,
+              "horizon_s": 180.0,
+              "gasket_beats": 5,
               "raw_beat_level": {
-                "true_positives": 353,
-                "false_positives": 94,
-                "precision": 0.7897091722595079,
-                "false_alarms_per_hour": 940.4074707203342
-              },
-              "raw_excursion_onsets": {
-                "true_positives": 1,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "true_positives": 218,
+                "false_positives": 62,
+                "precision": 0.7785714285714286,
+                "false_alarms_per_hour": 620.2687572836247,
+                "total_ground_truth_events": 2,
+                "events_detected_tp": 2,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
               "sustained_gasket_filtered": {
-                "true_positives": 1,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "true_positives": 11,
+                "false_positives": 5,
+                "precision": 0.6875,
+                "false_alarms_per_hour": 50.021673974485864,
+                "total_ground_truth_events": 2,
+                "events_detected_tp": 2,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
-              "n_raw_beats_above": 447,
-              "n_raw_excursion_onsets": 1,
-              "n_sustained_alerts": 1
+              "n_sustained_alerts": 16
             },
             "phase_veto": {
-              "threshold": 0.19,
+              "horizon_s": 180.0,
+              "gasket_beats": 5,
               "raw_beat_level": {
-                "true_positives": 350,
-                "false_positives": 94,
-                "precision": 0.7882882882882883,
-                "false_alarms_per_hour": 940.4074707203342
-              },
-              "raw_excursion_onsets": {
-                "true_positives": 2,
-                "false_positives": 0,
-                "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "true_positives": 92,
+                "false_positives": 19,
+                "precision": 0.8288288288288288,
+                "false_alarms_per_hour": 190.08236110304628,
+                "total_ground_truth_events": 2,
+                "events_detected_tp": 2,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
               "sustained_gasket_filtered": {
-                "true_positives": 2,
+                "true_positives": 4,
                 "false_positives": 0,
                 "precision": 1.0,
-                "false_alarms_per_hour": 0.0
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 2,
+                "events_detected_tp": 2,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
               },
-              "n_raw_beats_above": 444,
-              "n_raw_excursion_onsets": 2,
-              "n_sustained_alerts": 2
+              "n_sustained_alerts": 4
             }
-          }
+          },
+          "false_alarm_metrics_mission_900s": {
+            "metastable_thinning": {
+              "horizon_s": 900.0,
+              "gasket_beats": 5,
+              "raw_beat_level": {
+                "true_positives": 218,
+                "false_positives": 62,
+                "precision": 0.7785714285714286,
+                "false_alarms_per_hour": 620.2687572836247,
+                "total_ground_truth_events": 2,
+                "events_detected_tp": 2,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 11,
+                "false_positives": 5,
+                "precision": 0.6875,
+                "false_alarms_per_hour": 50.021673974485864,
+                "total_ground_truth_events": 2,
+                "events_detected_tp": 2,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "n_sustained_alerts": 16
+            },
+            "phase_veto": {
+              "horizon_s": 900.0,
+              "gasket_beats": 5,
+              "raw_beat_level": {
+                "true_positives": 92,
+                "false_positives": 19,
+                "precision": 0.8288288288288288,
+                "false_alarms_per_hour": 190.08236110304628,
+                "total_ground_truth_events": 2,
+                "events_detected_tp": 2,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "sustained_gasket_filtered": {
+                "true_positives": 4,
+                "false_positives": 0,
+                "precision": 1.0,
+                "false_alarms_per_hour": 0.0,
+                "total_ground_truth_events": 2,
+                "events_detected_tp": 2,
+                "events_missed_fn": 0,
+                "event_recall": 1.0
+              },
+              "n_sustained_alerts": 4
+            }
+          },
+          "gasket_mean_seconds": 4.0089599217002245
         }
       }
     },
@@ -887,80 +1123,80 @@
       "subject_or_session": "25_CA",
       "phase": "Metastable Thinning",
       "threshold": 0.07,
-      "first_crossing_t_s": 2.149,
+      "first_crossing_t_s": 4.168,
       "reference_event_t_s": 0.6559999999999999,
-      "lead_time_s": -1.493,
-      "omega_at_crossing": 0.16399999999999998
+      "lead_time_s": -3.5120000000000005,
+      "omega_at_crossing": 0.23101375388066475
     },
     {
       "dataset": "NASA_Langley_CSM25",
       "subject_or_session": "25_CA",
       "phase": "Phase Veto",
       "threshold": 0.19,
-      "first_crossing_t_s": 3.168,
+      "first_crossing_t_s": 4.168,
       "reference_event_t_s": 0.6559999999999999,
-      "lead_time_s": -2.5120000000000005,
-      "omega_at_crossing": 0.19674797562306212
+      "lead_time_s": -3.5120000000000005,
+      "omega_at_crossing": 0.23101375388066475
     },
     {
       "dataset": "NASA_Langley_CSM25",
       "subject_or_session": "25_DA",
       "phase": "Metastable Thinning",
       "threshold": 0.07,
-      "first_crossing_t_s": 0.87109375,
+      "first_crossing_t_s": 5.375,
       "reference_event_t_s": 31.73046875,
-      "lead_time_s": 30.859375,
-      "omega_at_crossing": 0.08609375
+      "lead_time_s": 26.35546875,
+      "omega_at_crossing": 0.1236905040312481
     },
     {
       "dataset": "NASA_Langley_CSM25",
       "subject_or_session": "25_DA",
       "phase": "Phase Veto",
       "threshold": 0.19,
-      "first_crossing_t_s": 2.53515625,
+      "first_crossing_t_s": 14.6640625,
       "reference_event_t_s": 31.73046875,
-      "lead_time_s": 29.1953125,
-      "omega_at_crossing": 0.23872918679865124
+      "lead_time_s": 17.06640625,
+      "omega_at_crossing": 1.8591975357289265
     },
     {
       "dataset": "NASA_Langley_CSM25",
       "subject_or_session": "25_LOFT",
       "phase": "Metastable Thinning",
       "threshold": 0.07,
-      "first_crossing_t_s": 1.08203125,
+      "first_crossing_t_s": 12.62890625,
       "reference_event_t_s": 702.9453125,
-      "lead_time_s": 701.86328125,
-      "omega_at_crossing": 0.1521875
+      "lead_time_s": 690.31640625,
+      "omega_at_crossing": 0.09561917736257514
     },
     {
       "dataset": "NASA_Langley_CSM25",
       "subject_or_session": "25_LOFT",
       "phase": "Phase Veto",
       "threshold": 0.19,
-      "first_crossing_t_s": 8.55078125,
+      "first_crossing_t_s": 31.51171875,
       "reference_event_t_s": 702.9453125,
-      "lead_time_s": 694.39453125,
-      "omega_at_crossing": 0.2519606774676512
+      "lead_time_s": 671.43359375,
+      "omega_at_crossing": 0.19453300450422623
     },
     {
       "dataset": "NASA_Langley_CSM25",
       "subject_or_session": "25_SS",
       "phase": "Metastable Thinning",
       "threshold": 0.07,
-      "first_crossing_t_s": 2.008,
+      "first_crossing_t_s": 4.418,
       "reference_event_t_s": 84.733002,
-      "lead_time_s": 82.725002,
-      "omega_at_crossing": 0.17612
+      "lead_time_s": 80.31500199999999,
+      "omega_at_crossing": 1.0740909703333288
     },
     {
       "dataset": "NASA_Langley_CSM25",
       "subject_or_session": "25_SS",
       "phase": "Phase Veto",
       "threshold": 0.19,
-      "first_crossing_t_s": 3.105,
+      "first_crossing_t_s": 4.418,
       "reference_event_t_s": 84.733002,
-      "lead_time_s": 81.628002,
-      "omega_at_crossing": 0.2761741618660748
+      "lead_time_s": 80.31500199999999,
+      "omega_at_crossing": 1.0740909703333288
     },
     {
       "dataset": "OSD-575_LSDS-8",
@@ -1045,50 +1281,178 @@
   ],
   "false_alarm_analysis": {
     "pre_event_horizon_s": 900.0,
+    "tactical_horizon_s": 180.0,
+    "gasket_beats": 5,
     "gasket_sustain_beats": 5,
-    "total_duration_s": 4702.531665,
-    "total_duration_h": 1.3062587958333334,
+    "gasket_mean_seconds": 3.988759751725236,
+    "gasket_seconds_range": [
+      3.5634455605158735,
+      4.648555715460526
+    ],
+    "habitat_gasket_s": 900.0,
+    "total_duration_s": 4702.5316649999995,
+    "total_duration_h": 1.3062587958333332,
+    "total_ground_truth_events": 19,
+    "calibration": {
+      "baseline_beats": 30,
+      "nominal_floor": 0.05,
+      "formula": "omega_offset = median(Omega[:30]) - 0.05; Omega_cal = clip(Omega - offset, 0, None)"
+    },
+    "by_horizon": {
+      "tactical_180s": {
+        "horizon_s": 180.0,
+        "by_threshold": {
+          "metastable_thinning": {
+            "threshold": 0.07,
+            "total_ground_truth_events": 19,
+            "raw_beat_level": {
+              "true_positives": 2387,
+              "false_positives": 2215,
+              "precision": 0.5186875271621034,
+              "false_alarms_per_hour": 1695.6823617688497,
+              "total_ground_truth_events": 19,
+              "events_detected_tp": 19,
+              "events_missed_fn": 0,
+              "event_recall": 1.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 53,
+              "false_positives": 30,
+              "precision": 0.6385542168674698,
+              "false_alarms_per_hour": 22.966352529600673,
+              "total_ground_truth_events": 19,
+              "events_detected_tp": 18,
+              "events_missed_fn": 1,
+              "event_recall": 0.9473684210526315
+            }
+          },
+          "phase_veto": {
+            "threshold": 0.19,
+            "total_ground_truth_events": 19,
+            "raw_beat_level": {
+              "true_positives": 1170,
+              "false_positives": 1002,
+              "precision": 0.5386740331491713,
+              "false_alarms_per_hour": 767.0761744886624,
+              "total_ground_truth_events": 19,
+              "events_detected_tp": 19,
+              "events_missed_fn": 0,
+              "event_recall": 1.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 37,
+              "false_positives": 26,
+              "precision": 0.5873015873015873,
+              "false_alarms_per_hour": 19.904172192320583,
+              "total_ground_truth_events": 19,
+              "events_detected_tp": 19,
+              "events_missed_fn": 0,
+              "event_recall": 1.0
+            }
+          }
+        }
+      },
+      "mission_900s": {
+        "horizon_s": 900.0,
+        "by_threshold": {
+          "metastable_thinning": {
+            "threshold": 0.07,
+            "total_ground_truth_events": 19,
+            "raw_beat_level": {
+              "true_positives": 4318,
+              "false_positives": 284,
+              "precision": 0.9382877009995654,
+              "false_alarms_per_hour": 217.41480394688637,
+              "total_ground_truth_events": 19,
+              "events_detected_tp": 19,
+              "events_missed_fn": 0,
+              "event_recall": 1.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 74,
+              "false_positives": 9,
+              "precision": 0.891566265060241,
+              "false_alarms_per_hour": 6.889905758880202,
+              "total_ground_truth_events": 19,
+              "events_detected_tp": 19,
+              "events_missed_fn": 0,
+              "event_recall": 1.0
+            }
+          },
+          "phase_veto": {
+            "threshold": 0.19,
+            "total_ground_truth_events": 19,
+            "raw_beat_level": {
+              "true_positives": 2073,
+              "false_positives": 99,
+              "precision": 0.9544198895027625,
+              "false_alarms_per_hour": 75.78896334768223,
+              "total_ground_truth_events": 19,
+              "events_detected_tp": 19,
+              "events_missed_fn": 0,
+              "event_recall": 1.0
+            },
+            "sustained_gasket_filtered": {
+              "true_positives": 61,
+              "false_positives": 2,
+              "precision": 0.9682539682539683,
+              "false_alarms_per_hour": 1.5310901686400449,
+              "total_ground_truth_events": 19,
+              "events_detected_tp": 19,
+              "events_missed_fn": 0,
+              "event_recall": 1.0
+            }
+          }
+        }
+      }
+    },
     "by_threshold": {
       "metastable_thinning": {
         "threshold": 0.07,
+        "total_ground_truth_events": 19,
         "raw_beat_level": {
-          "true_positives": 4892,
-          "false_positives": 336,
-          "precision": 0.9357306809487376,
-          "false_alarms_per_hour": 257.2231483315275
-        },
-        "raw_excursion_onsets": {
-          "true_positives": 4,
-          "false_positives": 0,
-          "precision": 1.0,
-          "false_alarms_per_hour": 0.0
+          "true_positives": 2387,
+          "false_positives": 2215,
+          "precision": 0.5186875271621034,
+          "false_alarms_per_hour": 1695.6823617688497,
+          "total_ground_truth_events": 19,
+          "events_detected_tp": 19,
+          "events_missed_fn": 0,
+          "event_recall": 1.0
         },
         "sustained_gasket_filtered": {
-          "true_positives": 4,
-          "false_positives": 0,
-          "precision": 1.0,
-          "false_alarms_per_hour": 0.0
+          "true_positives": 53,
+          "false_positives": 30,
+          "precision": 0.6385542168674698,
+          "false_alarms_per_hour": 22.966352529600673,
+          "total_ground_truth_events": 19,
+          "events_detected_tp": 18,
+          "events_missed_fn": 1,
+          "event_recall": 0.9473684210526315
         }
       },
       "phase_veto": {
         "threshold": 0.19,
+        "total_ground_truth_events": 19,
         "raw_beat_level": {
-          "true_positives": 4836,
-          "false_positives": 336,
-          "precision": 0.9350348027842227,
-          "false_alarms_per_hour": 257.2231483315275
-        },
-        "raw_excursion_onsets": {
-          "true_positives": 16,
-          "false_positives": 0,
-          "precision": 1.0,
-          "false_alarms_per_hour": 0.0
+          "true_positives": 1170,
+          "false_positives": 1002,
+          "precision": 0.5386740331491713,
+          "false_alarms_per_hour": 767.0761744886624,
+          "total_ground_truth_events": 19,
+          "events_detected_tp": 19,
+          "events_missed_fn": 0,
+          "event_recall": 1.0
         },
         "sustained_gasket_filtered": {
-          "true_positives": 7,
-          "false_positives": 0,
-          "precision": 1.0,
-          "false_alarms_per_hour": 0.0
+          "true_positives": 37,
+          "false_positives": 26,
+          "precision": 0.5873015873015873,
+          "false_alarms_per_hour": 19.904172192320583,
+          "total_ground_truth_events": 19,
+          "events_detected_tp": 19,
+          "events_missed_fn": 0,
+          "event_recall": 1.0
         }
       }
     },
@@ -1096,227 +1460,661 @@
       "25_CA": {
         "duration_s": 360.04702499999996,
         "n_event_segments": 1,
-        "thresholds": {
-          "metastable_thinning": {
-            "threshold": 0.07,
-            "raw_beat_level": {
-              "true_positives": 477,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "raw_excursion_onsets": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "sustained_gasket_filtered": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "n_raw_beats_above": 477,
-            "n_raw_excursion_onsets": 1,
-            "n_sustained_alerts": 1
-          },
-          "phase_veto": {
-            "threshold": 0.19,
-            "raw_beat_level": {
-              "true_positives": 473,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "raw_excursion_onsets": {
-              "true_positives": 3,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "sustained_gasket_filtered": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "n_raw_beats_above": 473,
-            "n_raw_excursion_onsets": 3,
-            "n_sustained_alerts": 1
-          }
-        }
+        "omega_offset": 0.2660114540495119,
+        "gasket_mean_seconds": 3.734077809224318
       },
       "25_DA": {
         "duration_s": 359.67578125,
         "n_event_segments": 10,
-        "thresholds": {
-          "metastable_thinning": {
-            "threshold": 0.07,
-            "raw_beat_level": {
-              "true_positives": 504,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "raw_excursion_onsets": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "sustained_gasket_filtered": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "n_raw_beats_above": 504,
-            "n_raw_excursion_onsets": 1,
-            "n_sustained_alerts": 1
-          },
-          "phase_veto": {
-            "threshold": 0.19,
-            "raw_beat_level": {
-              "true_positives": 500,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "raw_excursion_onsets": {
-              "true_positives": 3,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "sustained_gasket_filtered": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "n_raw_beats_above": 500,
-            "n_raw_excursion_onsets": 3,
-            "n_sustained_alerts": 1
-          }
-        }
+        "omega_offset": 0.2656273314180502,
+        "gasket_mean_seconds": 3.5634455605158735
       },
       "25_LOFT": {
         "duration_s": 3622.96484375,
         "n_event_segments": 6,
-        "thresholds": {
-          "metastable_thinning": {
-            "threshold": 0.07,
-            "raw_beat_level": {
-              "true_positives": 3558,
-              "false_positives": 242,
-              "precision": 0.9363157894736842,
-              "false_alarms_per_hour": 240.46603750597052
-            },
-            "raw_excursion_onsets": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "sustained_gasket_filtered": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "n_raw_beats_above": 3800,
-            "n_raw_excursion_onsets": 1,
-            "n_sustained_alerts": 1
-          },
-          "phase_veto": {
-            "threshold": 0.19,
-            "raw_beat_level": {
-              "true_positives": 3513,
-              "false_positives": 242,
-              "precision": 0.9355525965379494,
-              "false_alarms_per_hour": 240.46603750597052
-            },
-            "raw_excursion_onsets": {
-              "true_positives": 8,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "sustained_gasket_filtered": {
-              "true_positives": 3,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "n_raw_beats_above": 3755,
-            "n_raw_excursion_onsets": 8,
-            "n_sustained_alerts": 3
-          }
-        }
+        "omega_offset": 0.19733522155672434,
+        "gasket_mean_seconds": 4.648555715460526
       },
       "25_SS": {
         "duration_s": 359.844015,
         "n_event_segments": 2,
-        "thresholds": {
-          "metastable_thinning": {
-            "threshold": 0.07,
-            "raw_beat_level": {
-              "true_positives": 353,
-              "false_positives": 94,
-              "precision": 0.7897091722595079,
-              "false_alarms_per_hour": 940.4074707203342
-            },
-            "raw_excursion_onsets": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "sustained_gasket_filtered": {
-              "true_positives": 1,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "n_raw_beats_above": 447,
-            "n_raw_excursion_onsets": 1,
-            "n_sustained_alerts": 1
+        "omega_offset": 0.4023016587478993,
+        "gasket_mean_seconds": 4.0089599217002245
+      }
+    }
+  },
+  "method_comparison": {
+    "tactical_180s": {
+      "horizon_s": 180.0,
+      "methods": {
+        "omega_cal_metastable": {
+          "label": "Sentinel Settle \u03a9_cal \u2265 0.07",
+          "raw_beat_level": {
+            "true_positives": 2387,
+            "false_positives": 2215,
+            "precision": 0.5186875271621034,
+            "false_alarms_per_hour": 1695.6823617688497,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 19,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
           },
-          "phase_veto": {
-            "threshold": 0.19,
-            "raw_beat_level": {
-              "true_positives": 350,
-              "false_positives": 94,
-              "precision": 0.7882882882882883,
-              "false_alarms_per_hour": 940.4074707203342
-            },
-            "raw_excursion_onsets": {
-              "true_positives": 2,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "sustained_gasket_filtered": {
-              "true_positives": 2,
-              "false_positives": 0,
-              "precision": 1.0,
-              "false_alarms_per_hour": 0.0
-            },
-            "n_raw_beats_above": 444,
-            "n_raw_excursion_onsets": 2,
-            "n_sustained_alerts": 2
+          "sustained_gasket_filtered": {
+            "true_positives": 53,
+            "false_positives": 30,
+            "precision": 0.6385542168674698,
+            "false_alarms_per_hour": 22.966352529600673,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 18,
+            "events_missed_fn": 1,
+            "event_recall": 0.9473684210526315
+          }
+        },
+        "omega_cal_veto": {
+          "label": "Sentinel Settle \u03a9_cal \u2265 0.19",
+          "raw_beat_level": {
+            "true_positives": 1170,
+            "false_positives": 1002,
+            "precision": 0.5386740331491713,
+            "false_alarms_per_hour": 767.0761744886624,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 19,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "sustained_gasket_filtered": {
+            "true_positives": 37,
+            "false_positives": 26,
+            "precision": 0.5873015873015873,
+            "false_alarms_per_hour": 19.904172192320583,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 19,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          }
+        },
+        "rmssd_drop": {
+          "label": "Rolling RMSSD drop (<0.75\u00d7 baseline)",
+          "raw_beat_level": {
+            "true_positives": 212,
+            "false_positives": 112,
+            "precision": 0.654320987654321,
+            "false_alarms_per_hour": 85.74104944384251,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 12,
+            "events_missed_fn": 7,
+            "event_recall": 0.631578947368421
+          },
+          "sustained_gasket_filtered": {
+            "true_positives": 10,
+            "false_positives": 6,
+            "precision": 0.625,
+            "false_alarms_per_hour": 4.593270505920135,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 8,
+            "events_missed_fn": 11,
+            "event_recall": 0.42105263157894735
+          }
+        },
+        "hr_elevation": {
+          "label": "Heart-rate elevation (+10 bpm)",
+          "raw_beat_level": {
+            "true_positives": 1016,
+            "false_positives": 510,
+            "precision": 0.6657929226736566,
+            "false_alarms_per_hour": 390.42799300321144,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 19,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "sustained_gasket_filtered": {
+            "true_positives": 35,
+            "false_positives": 11,
+            "precision": 0.7608695652173914,
+            "false_alarms_per_hour": 8.420995927520247,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 13,
+            "events_missed_fn": 6,
+            "event_recall": 0.6842105263157895
+          }
+        }
+      }
+    },
+    "mission_900s": {
+      "horizon_s": 900.0,
+      "methods": {
+        "omega_cal_metastable": {
+          "label": "Sentinel Settle \u03a9_cal \u2265 0.07",
+          "raw_beat_level": {
+            "true_positives": 4318,
+            "false_positives": 284,
+            "precision": 0.9382877009995654,
+            "false_alarms_per_hour": 217.41480394688637,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 19,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "sustained_gasket_filtered": {
+            "true_positives": 74,
+            "false_positives": 9,
+            "precision": 0.891566265060241,
+            "false_alarms_per_hour": 6.889905758880202,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 19,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          }
+        },
+        "omega_cal_veto": {
+          "label": "Sentinel Settle \u03a9_cal \u2265 0.19",
+          "raw_beat_level": {
+            "true_positives": 2073,
+            "false_positives": 99,
+            "precision": 0.9544198895027625,
+            "false_alarms_per_hour": 75.78896334768223,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 19,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "sustained_gasket_filtered": {
+            "true_positives": 61,
+            "false_positives": 2,
+            "precision": 0.9682539682539683,
+            "false_alarms_per_hour": 1.5310901686400449,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 19,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          }
+        },
+        "rmssd_drop": {
+          "label": "Rolling RMSSD drop (<0.75\u00d7 baseline)",
+          "raw_beat_level": {
+            "true_positives": 271,
+            "false_positives": 53,
+            "precision": 0.8364197530864198,
+            "false_alarms_per_hour": 40.57388946896119,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 15,
+            "events_missed_fn": 4,
+            "event_recall": 0.7894736842105263
+          },
+          "sustained_gasket_filtered": {
+            "true_positives": 14,
+            "false_positives": 2,
+            "precision": 0.875,
+            "false_alarms_per_hour": 1.5310901686400449,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 14,
+            "events_missed_fn": 5,
+            "event_recall": 0.7368421052631579
+          }
+        },
+        "hr_elevation": {
+          "label": "Heart-rate elevation (+10 bpm)",
+          "raw_beat_level": {
+            "true_positives": 1357,
+            "false_positives": 169,
+            "precision": 0.8892529488859764,
+            "false_alarms_per_hour": 129.37711925008378,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 19,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "sustained_gasket_filtered": {
+            "true_positives": 38,
+            "false_positives": 8,
+            "precision": 0.8260869565217391,
+            "false_alarms_per_hour": 6.1243606745601795,
+            "total_ground_truth_events": 19,
+            "events_detected_tp": 16,
+            "events_missed_fn": 3,
+            "event_recall": 0.8421052631578947
           }
         }
       }
     }
   },
+  "detector_baselines": {
+    "rmssd_roll_beats": 30,
+    "rmssd_drop_frac": 0.75,
+    "hr_elevation_bpm": 10.0,
+    "gasket_beats": 5
+  },
+  "loso_holdout_validation": {
+    "n_folds": 4,
+    "scenarios": [
+      "25_CA",
+      "25_DA",
+      "25_LOFT",
+      "25_SS"
+    ],
+    "horizon_s": 180.0,
+    "gasket_beats": 5,
+    "folds": [
+      {
+        "held_out_scenario": "25_CA",
+        "train_scenarios": [
+          "25_DA",
+          "25_LOFT",
+          "25_SS"
+        ],
+        "fitted_thresholds": {
+          "tau_metastable": 0.1650290584335335,
+          "tau_veto": 0.2671341777910653,
+          "metastable_youden_j": 0.03081588258047574,
+          "veto_youden_j": 0.053444549722668766,
+          "train_mean_omega_offset": 0.28842140390755794
+        },
+        "youden_optimized": {
+          "tau_metastable": 0.1650290584335335,
+          "tau_veto": 0.2671341777910653,
+          "n_events": 1,
+          "duration_s": 360.04702499999996,
+          "metastable": {
+            "true_positives": 8,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 1,
+            "events_detected_tp": 1,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "phase_veto": {
+            "true_positives": 2,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 1,
+            "events_detected_tp": 1,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "lead_time": {
+            "first_crossing_t_s": 55.324001,
+            "reference_event_t_s": 0.6559999999999999,
+            "lead_time_s": -54.668001000000004,
+            "omega_at_crossing": 0.38501719440178317
+          }
+        },
+        "fixed_theoretical_0_07_0_19": {
+          "tau_metastable": 0.07,
+          "tau_veto": 0.19,
+          "n_events": 1,
+          "duration_s": 360.04702499999996,
+          "metastable": {
+            "true_positives": 15,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 1,
+            "events_detected_tp": 1,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "phase_veto": {
+            "true_positives": 6,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 1,
+            "events_detected_tp": 1,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "lead_time": {
+            "first_crossing_t_s": 18.612001,
+            "reference_event_t_s": 0.6559999999999999,
+            "lead_time_s": -17.956001,
+            "omega_at_crossing": 0.09200418823291379
+          }
+        }
+      },
+      {
+        "held_out_scenario": "25_DA",
+        "train_scenarios": [
+          "25_CA",
+          "25_LOFT",
+          "25_SS"
+        ],
+        "fitted_thresholds": {
+          "tau_metastable": 0.18053098529314926,
+          "tau_veto": 0.49320666349478526,
+          "metastable_youden_j": -0.026057916056192343,
+          "veto_youden_j": 0.007572035967709501,
+          "train_mean_omega_offset": 0.28854944478471184
+        },
+        "youden_optimized": {
+          "tau_metastable": 0.18053098529314926,
+          "tau_veto": 0.49320666349478526,
+          "n_events": 10,
+          "duration_s": 359.67578125,
+          "metastable": {
+            "true_positives": 11,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 10,
+            "events_detected_tp": 10,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "phase_veto": {
+            "true_positives": 2,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 10,
+            "events_detected_tp": 8,
+            "events_missed_fn": 2,
+            "event_recall": 0.8
+          },
+          "lead_time": {
+            "first_crossing_t_s": 24.56640625,
+            "reference_event_t_s": 31.73046875,
+            "lead_time_s": 7.1640625,
+            "omega_at_crossing": 0.22512075049910701
+          }
+        },
+        "fixed_theoretical_0_07_0_19": {
+          "tau_metastable": 0.07,
+          "tau_veto": 0.19,
+          "n_events": 10,
+          "duration_s": 359.67578125,
+          "metastable": {
+            "true_positives": 10,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 10,
+            "events_detected_tp": 10,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "phase_veto": {
+            "true_positives": 8,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 10,
+            "events_detected_tp": 10,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "lead_time": {
+            "first_crossing_t_s": 13.7109375,
+            "reference_event_t_s": 31.73046875,
+            "lead_time_s": 18.01953125,
+            "omega_at_crossing": 0.16678511736841067
+          }
+        }
+      },
+      {
+        "held_out_scenario": "25_LOFT",
+        "train_scenarios": [
+          "25_CA",
+          "25_DA",
+          "25_SS"
+        ],
+        "fitted_thresholds": {
+          "tau_metastable": 0.16567682816683632,
+          "tau_veto": 0.21693739785460014,
+          "metastable_youden_j": 0.27780790455835913,
+          "veto_youden_j": 0.23515901623656257,
+          "train_mean_omega_offset": 0.31131348140515386
+        },
+        "youden_optimized": {
+          "tau_metastable": 0.16567682816683632,
+          "tau_veto": 0.21693739785460014,
+          "n_events": 6,
+          "duration_s": 3622.96484375,
+          "metastable": {
+            "true_positives": 25,
+            "false_positives": 35,
+            "precision": 0.4166666666666667,
+            "false_alarms_per_hour": 34.77814592028499,
+            "total_ground_truth_events": 6,
+            "events_detected_tp": 6,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "phase_veto": {
+            "true_positives": 10,
+            "false_positives": 29,
+            "precision": 0.2564102564102564,
+            "false_alarms_per_hour": 28.816178048236136,
+            "total_ground_truth_events": 6,
+            "events_detected_tp": 5,
+            "events_missed_fn": 1,
+            "event_recall": 0.8333333333333334
+          },
+          "lead_time": {
+            "first_crossing_t_s": 112.8828125,
+            "reference_event_t_s": 702.9453125,
+            "lead_time_s": 590.0625,
+            "omega_at_crossing": 0.5981299958003565
+          }
+        },
+        "fixed_theoretical_0_07_0_19": {
+          "tau_metastable": 0.07,
+          "tau_veto": 0.19,
+          "n_events": 6,
+          "duration_s": 3622.96484375,
+          "metastable": {
+            "true_positives": 17,
+            "false_positives": 25,
+            "precision": 0.40476190476190477,
+            "false_alarms_per_hour": 24.841532800203566,
+            "total_ground_truth_events": 6,
+            "events_detected_tp": 5,
+            "events_missed_fn": 1,
+            "event_recall": 0.8333333333333334
+          },
+          "phase_veto": {
+            "true_positives": 19,
+            "false_positives": 26,
+            "precision": 0.4222222222222222,
+            "false_alarms_per_hour": 25.835194112211706,
+            "total_ground_truth_events": 6,
+            "events_detected_tp": 6,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "lead_time": {
+            "first_crossing_t_s": 25.24609375,
+            "reference_event_t_s": 702.9453125,
+            "lead_time_s": 677.69921875,
+            "omega_at_crossing": 0.15174292730866934
+          }
+        }
+      },
+      {
+        "held_out_scenario": "25_SS",
+        "train_scenarios": [
+          "25_CA",
+          "25_DA",
+          "25_LOFT"
+        ],
+        "fitted_thresholds": {
+          "tau_metastable": 0.1797094640531821,
+          "tau_veto": 0.25886799438424635,
+          "metastable_youden_j": 0.03465642495742832,
+          "veto_youden_j": 0.05704485035588713,
+          "train_mean_omega_offset": 0.24299133567476217
+        },
+        "youden_optimized": {
+          "tau_metastable": 0.1797094640531821,
+          "tau_veto": 0.25886799438424635,
+          "n_events": 2,
+          "duration_s": 359.844015,
+          "metastable": {
+            "true_positives": 6,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 2,
+            "events_detected_tp": 2,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "phase_veto": {
+            "true_positives": 0,
+            "false_positives": 0,
+            "precision": null,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 2,
+            "events_detected_tp": 0,
+            "events_missed_fn": 2,
+            "event_recall": 0.0
+          },
+          "lead_time": {
+            "first_crossing_t_s": 64.410004,
+            "reference_event_t_s": 84.733002,
+            "lead_time_s": 20.322998,
+            "omega_at_crossing": 0.19676302523056916
+          }
+        },
+        "fixed_theoretical_0_07_0_19": {
+          "tau_metastable": 0.07,
+          "tau_veto": 0.19,
+          "n_events": 2,
+          "duration_s": 359.844015,
+          "metastable": {
+            "true_positives": 11,
+            "false_positives": 5,
+            "precision": 0.6875,
+            "false_alarms_per_hour": 50.021673974485864,
+            "total_ground_truth_events": 2,
+            "events_detected_tp": 2,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "phase_veto": {
+            "true_positives": 4,
+            "false_positives": 0,
+            "precision": 1.0,
+            "false_alarms_per_hour": 0.0,
+            "total_ground_truth_events": 2,
+            "events_detected_tp": 2,
+            "events_missed_fn": 0,
+            "event_recall": 1.0
+          },
+          "lead_time": {
+            "first_crossing_t_s": 22.16400100000001,
+            "reference_event_t_s": 84.733002,
+            "lead_time_s": 62.569000999999986,
+            "omega_at_crossing": 0.12609664057131692
+          }
+        }
+      }
+    ],
+    "pooled": {
+      "youden_optimized": {
+        "metastable": {
+          "true_positives": 50,
+          "false_positives": 35,
+          "precision": 0.5882352941176471,
+          "false_alarms_per_hour": 26.794077951200784,
+          "events_detected_tp": 19,
+          "total_ground_truth_events": 19,
+          "event_recall": 1.0,
+          "mean_lead_time_s": 140.720389875,
+          "n_folds_with_lead_time": 4,
+          "total_duration_s": 4702.5316649999995
+        },
+        "phase_veto": {
+          "true_positives": 14,
+          "false_positives": 29,
+          "precision": 0.32558139534883723,
+          "false_alarms_per_hour": 22.20080744528065,
+          "events_detected_tp": 14,
+          "total_ground_truth_events": 19,
+          "event_recall": 0.7368421052631579,
+          "mean_lead_time_s": 140.720389875,
+          "n_folds_with_lead_time": 4,
+          "total_duration_s": 4702.5316649999995
+        }
+      },
+      "fixed_theoretical_0_07_0_19": {
+        "metastable": {
+          "true_positives": 53,
+          "false_positives": 30,
+          "precision": 0.6385542168674698,
+          "false_alarms_per_hour": 22.966352529600673,
+          "events_detected_tp": 18,
+          "total_ground_truth_events": 19,
+          "event_recall": 0.9473684210526315,
+          "mean_lead_time_s": 185.08293749999999,
+          "n_folds_with_lead_time": 4,
+          "total_duration_s": 4702.5316649999995
+        },
+        "phase_veto": {
+          "true_positives": 37,
+          "false_positives": 26,
+          "precision": 0.5873015873015873,
+          "false_alarms_per_hour": 19.904172192320583,
+          "events_detected_tp": 19,
+          "total_ground_truth_events": 19,
+          "event_recall": 1.0,
+          "mean_lead_time_s": 185.08293749999999,
+          "n_folds_with_lead_time": 4,
+          "total_duration_s": 4702.5316649999995
+        }
+      }
+    },
+    "note": "Leave-One-Scenario-Out: Youden \u03c4 fit on 3 train scenarios only; held-out scored with Tier-1 5-beat gasket and 180 s tactical horizon. Per-session Omega_cal re-anchor uses only that session's first 30 beats."
+  },
+  "osd575_cohort_metrics": {
+    "n_crew": 4,
+    "note": "OSD-575 consists of discrete blood-draw timepoints (not continuous ECG).",
+    "per_crew": {
+      "C001": {
+        "preflight_mean_Omega": 0.1442093988000698,
+        "r_plus_1_Omega": 2.464112102164435
+      },
+      "C002": {
+        "preflight_mean_Omega": 0.1728089712515913,
+        "r_plus_1_Omega": 0.27535655936473086
+      },
+      "C003": {
+        "preflight_mean_Omega": 0.18949910642398915,
+        "r_plus_1_Omega": 0.8854283563416082
+      },
+      "C004": {
+        "preflight_mean_Omega": 0.15663454640287724,
+        "r_plus_1_Omega": 0.7774249969734971
+      }
+    },
+    "by_threshold": {
+      "metastable_thinning": {
+        "threshold": 0.07,
+        "n_crew": 4,
+        "postflight_r1_exceedances": 4,
+        "preflight_below_threshold": 0,
+        "sensitivity": 1.0,
+        "specificity": 0.0
+      },
+      "phase_veto": {
+        "threshold": 0.19,
+        "n_crew": 4,
+        "postflight_r1_exceedances": 4,
+        "preflight_below_threshold": 4,
+        "sensitivity": 1.0,
+        "specificity": 1.0
+      }
+    }
+  },
   "figure": {
     "path": "results/omega_lead_time_plot.png",
-    "loft_metastable_crossing_t_s": 1.08203125,
+    "loft_metastable_crossing_t_s": 25.24609375,
     "loft_event_t_s": 702.9453125,
-    "loft_lead_time_s": 701.86328125,
-    "loft_lead_time_min": 11.697721354166667
+    "loft_lead_time_s": 677.69921875,
+    "loft_lead_time_min": 11.294986979166667
   },
   "artifacts": {
     "validation_report_json": "results/validation_report.json",

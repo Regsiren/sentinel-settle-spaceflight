@@ -79,8 +79,15 @@ PHASE_VETO = 0.19  # Phase Veto
 NOMINAL_FS_HZ = 256.0
 ECG_PEAK_DISTANCE_S = 0.30  # refractory ~300 ms
 ECG_PROMINENCE_STD = 0.45
-PRE_EVENT_HORIZON_S = 900.0  # early-warning TP window before Event onset
-GASKET_SUSTAIN_BEATS = 5  # sustained / gasket-filtered alert length
+PRE_EVENT_HORIZON_S = 900.0  # mission-scale early-warning TP horizon
+TACTICAL_HORIZON_S = 180.0  # strict 3-minute tactical TP horizon
+GASKET_SUSTAIN_BEATS = 5  # Tier-1 tactical / acute workload gasket (beats)
+HABITAT_GASKET_S = 15 * 60.0  # Tier-2 habitat / long-duration gasket (seconds)
+BASELINE_CAL_BEATS = 30  # mobile-app-aligned re-anchor window
+RMSSD_ROLL_BEATS = 30
+RMSSD_DROP_FRAC = 0.75  # alert when RMSSD < 0.75 * baseline
+HR_ELEVATION_BPM = 10.0  # alert when HR > baseline + 10 bpm
+NOMINAL_OMEGA_FLOOR = 0.05  # re-anchor target (Nominal band floor)
 
 
 @dataclass
@@ -368,12 +375,203 @@ def excursion_onsets(above: np.ndarray, min_len: int = 1) -> np.ndarray:
     return starts[keep]
 
 
+def reanchor_omega(
+    omega: np.ndarray,
+    n_baseline: int = BASELINE_CAL_BEATS,
+    nominal_floor: float = NOMINAL_OMEGA_FLOOR,
+) -> tuple[np.ndarray, float]:
+    """
+    Mirror mobile-app 'Re-anchor Baseline':
+      omega_offset = median(Omega[:n]) - 0.05
+      Omega_cal = clip(Omega - offset, 0, None)
+    so calibrated series starts in the Nominal zone (< 0.07).
+    """
+    omega = np.asarray(omega, dtype=float)
+    n = max(1, min(int(n_baseline), len(omega)))
+    offset = float(np.median(omega[:n])) - float(nominal_floor)
+    omega_cal = np.clip(omega - offset, 0.0, None)
+    return omega_cal, offset
+
+
+def rolling_rmssd(ibi: np.ndarray, window: int = RMSSD_ROLL_BEATS) -> np.ndarray:
+    """Beat-aligned rolling RMSSD (seconds) over successive IBI differences."""
+    ibi = np.asarray(ibi, dtype=float)
+    n = len(ibi)
+    out = np.full(n, np.nan, dtype=float)
+    for i in range(n):
+        start = max(0, i - window + 1)
+        seg = ibi[start : i + 1]
+        if len(seg) < 2:
+            continue
+        out[i] = float(np.sqrt(np.mean(np.diff(seg) ** 2)))
+    # Cold-start fill
+    valid = np.where(np.isfinite(out))[0]
+    if len(valid):
+        out[: valid[0]] = out[valid[0]]
+    return out
+
+
+def build_hr_rmssd_alerts(
+    ibi: np.ndarray,
+    n_baseline: int = BASELINE_CAL_BEATS,
+) -> dict[str, Any]:
+    """Standard HR elevation and rolling-RMSSD-drop binary detectors."""
+    ibi = np.asarray(ibi, dtype=float)
+    hr = 60.0 / np.clip(ibi, EPS, None)
+    n = max(1, min(int(n_baseline), len(ibi)))
+    baseline_hr = float(np.median(hr[:n]))
+    rmssd = rolling_rmssd(ibi, RMSSD_ROLL_BEATS)
+    baseline_rmssd = float(np.nanmedian(rmssd[:n]))
+    if not np.isfinite(baseline_rmssd) or baseline_rmssd < EPS:
+        baseline_rmssd = float(np.nanmedian(rmssd[np.isfinite(rmssd)]))
+    hr_alert = hr > (baseline_hr + HR_ELEVATION_BPM)
+    rmssd_alert = np.isfinite(rmssd) & (rmssd < (RMSSD_DROP_FRAC * baseline_rmssd))
+    return {
+        "hr_bpm": hr,
+        "baseline_hr_bpm": baseline_hr,
+        "rmssd_s": rmssd,
+        "baseline_rmssd_s": baseline_rmssd,
+        "hr_alert": hr_alert.astype(bool),
+        "rmssd_alert": rmssd_alert.astype(bool),
+    }
+
+
+def score_alert_series(
+    sample_t: np.ndarray,
+    alert: np.ndarray,
+    event_segments: list[tuple[float, float]],
+    duration_s: float,
+    horizon_s: float,
+    gasket_beats: int = GASKET_SUSTAIN_BEATS,
+) -> dict[str, Any]:
+    """
+    Precision / FA/h / event-level recall for a binary detector under a
+    Tier-1 sustained gasket and a chosen pre-event TP horizon.
+    """
+    sample_t = np.asarray(sample_t, dtype=float)
+    alert = np.asarray(alert, dtype=bool)
+    in_tp = tp_window_mask(sample_t, event_segments, horizon_s)
+    hours = max(duration_s, EPS) / 3600.0
+    total_events = len(event_segments)
+
+    # Raw beat-level
+    raw_tp = int(np.sum(alert & in_tp))
+    raw_fp = int(np.sum(alert & ~in_tp))
+    raw_denom = raw_tp + raw_fp
+
+    # Sustained gasket onsets
+    onset_idx = excursion_onsets(alert, min_len=gasket_beats)
+    if len(onset_idx):
+        sus_tp = int(np.sum(in_tp[onset_idx]))
+        sus_fp = int(len(onset_idx) - sus_tp)
+        hits_t = sample_t[onset_idx]
+    else:
+        sus_tp = sus_fp = 0
+        hits_t = np.array([], dtype=float)
+    sus_denom = sus_tp + sus_fp
+
+    # Event-level recall from sustained onsets
+    ev_tp = 0
+    for start, end in event_segments:
+        win_lo, win_hi = start - horizon_s, end
+        if len(hits_t) and np.any((hits_t >= win_lo) & (hits_t <= win_hi)):
+            ev_tp += 1
+    ev_fn = total_events - ev_tp
+    ev_recall = (ev_tp / total_events) if total_events else None
+
+    # Raw event-level (any alert sample in window)
+    raw_hits = sample_t[alert]
+    raw_ev_tp = 0
+    for start, end in event_segments:
+        win_lo, win_hi = start - horizon_s, end
+        if len(raw_hits) and np.any((raw_hits >= win_lo) & (raw_hits <= win_hi)):
+            raw_ev_tp += 1
+    raw_ev_fn = total_events - raw_ev_tp
+
+    def _pack(tp: int, fp: int, ev_tp_: int, ev_fn_: int) -> dict[str, Any]:
+        denom = tp + fp
+        return {
+            "true_positives": int(tp),
+            "false_positives": int(fp),
+            "precision": (float(tp / denom) if denom > 0 else None),
+            "false_alarms_per_hour": float(fp / hours),
+            "total_ground_truth_events": int(total_events),
+            "events_detected_tp": int(ev_tp_),
+            "events_missed_fn": int(ev_fn_),
+            "event_recall": (
+                float(ev_tp_ / total_events) if total_events > 0 else None
+            ),
+        }
+
+    return {
+        "horizon_s": float(horizon_s),
+        "gasket_beats": int(gasket_beats),
+        "raw_beat_level": _pack(raw_tp, raw_fp, raw_ev_tp, raw_ev_fn),
+        "sustained_gasket_filtered": _pack(sus_tp, sus_fp, ev_tp, ev_fn),
+        "n_sustained_alerts": int(len(onset_idx)),
+    }
+
+
+def score_event_level_recall(
+    sample_t: np.ndarray,
+    omega: np.ndarray,
+    threshold: float,
+    event_segments: list[tuple[float, float]],
+    gasket_beats: int = GASKET_SUSTAIN_BEATS,
+    horizon_s: float = PRE_EVENT_HORIZON_S,
+) -> dict[str, Any]:
+    """
+    Event-level recall: Detected Events / Total Ground-Truth Events.
+
+    An event episode is detected if any Omega sample (raw) or any sustained
+    gasket onset falls inside [onset - horizon, episode_end].
+    """
+    sample_t = np.asarray(sample_t, dtype=float)
+    omega = np.asarray(omega, dtype=float)
+    above = omega >= threshold
+    total = len(event_segments)
+
+    def _detected(mode: str) -> tuple[int, int, float | None]:
+        if total == 0:
+            return 0, 0, None
+        if mode == "raw_beat_level":
+            hits = sample_t[above]
+        else:
+            onsets = excursion_onsets(above, min_len=gasket_beats)
+            hits = sample_t[onsets] if len(onsets) else np.array([], dtype=float)
+        tp = 0
+        for start, end in event_segments:
+            win_lo, win_hi = start - horizon_s, end
+            if len(hits) and np.any((hits >= win_lo) & (hits <= win_hi)):
+                tp += 1
+        fn = total - tp
+        recall = tp / total
+        return tp, fn, float(recall)
+
+    raw_tp, raw_fn, raw_recall = _detected("raw_beat_level")
+    sus_tp, sus_fn, sus_recall = _detected("sustained_gasket_filtered")
+    return {
+        "total_ground_truth_events": int(total),
+        "raw_beat_level": {
+            "events_detected_tp": int(raw_tp),
+            "events_missed_fn": int(raw_fn),
+            "event_recall": raw_recall,
+        },
+        "sustained_gasket_filtered": {
+            "events_detected_tp": int(sus_tp),
+            "events_missed_fn": int(sus_fn),
+            "event_recall": sus_recall,
+        },
+    }
+
+
 def score_threshold_alerts(
     sample_t: np.ndarray,
     omega: np.ndarray,
     threshold: float,
     event_segments: list[tuple[float, float]],
     duration_s: float,
+    mean_ibi_s: float | None = None,
     horizon_s: float = PRE_EVENT_HORIZON_S,
     gasket_beats: int = GASKET_SUSTAIN_BEATS,
 ) -> dict[str, Any]:
@@ -382,14 +580,18 @@ def score_threshold_alerts(
 
     Raw beat-level: every sample with Omega >= threshold.
     Sustained / gasket-filtered: contiguous runs lasting >= gasket_beats.
+    Also scores Event-level recall (sensitivity) per ground-truth episode.
     """
     sample_t = np.asarray(sample_t, dtype=float)
     omega = np.asarray(omega, dtype=float)
     above = omega >= threshold
     in_tp = tp_window_mask(sample_t, event_segments, horizon_s)
     hours = max(duration_s, EPS) / 3600.0
+    gasket_mean_seconds = (
+        float(gasket_beats * mean_ibi_s) if mean_ibi_s is not None else None
+    )
 
-    def _pack(tp: int, fp: int) -> dict[str, float | int]:
+    def _pack(tp: int, fp: int) -> dict[str, float | int | None]:
         denom = tp + fp
         precision = (tp / denom) if denom > 0 else None
         fa_per_h = fp / hours
@@ -417,21 +619,599 @@ def score_threshold_alerts(
     sus_fp = int(len(sus_onset_idx) - sus_tp)
     sustained = _pack(sus_tp, sus_fp)
 
+    event_recall = score_event_level_recall(
+        sample_t, omega, threshold, event_segments, gasket_beats, horizon_s
+    )
+    # Attach event recall onto alert modes for table joins
+    raw["events_detected_tp"] = event_recall["raw_beat_level"]["events_detected_tp"]
+    raw["events_missed_fn"] = event_recall["raw_beat_level"]["events_missed_fn"]
+    raw["event_recall"] = event_recall["raw_beat_level"]["event_recall"]
+    raw["total_ground_truth_events"] = event_recall["total_ground_truth_events"]
+    sustained["events_detected_tp"] = event_recall["sustained_gasket_filtered"][
+        "events_detected_tp"
+    ]
+    sustained["events_missed_fn"] = event_recall["sustained_gasket_filtered"][
+        "events_missed_fn"
+    ]
+    sustained["event_recall"] = event_recall["sustained_gasket_filtered"]["event_recall"]
+    sustained["total_ground_truth_events"] = event_recall["total_ground_truth_events"]
+
     return {
         "threshold": float(threshold),
+        "gasket_beats": int(gasket_beats),
+        "gasket_mean_seconds": gasket_mean_seconds,
         "raw_beat_level": raw,
         "raw_excursion_onsets": raw_excursion,
         "sustained_gasket_filtered": sustained,
+        "event_level_recall": event_recall,
         "n_raw_beats_above": int(np.sum(above)),
         "n_raw_excursion_onsets": int(len(raw_onset_idx)),
         "n_sustained_alerts": int(len(sus_onset_idx)),
     }
 
 
+def pool_method_comparison(
+    method_session_rows: list[dict[str, Any]],
+    total_duration_s: float,
+    total_events: int,
+    gasket_seconds_list: list[float],
+) -> dict[str, Any]:
+    """Pool dual-horizon Omega_cal metrics and head-to-head method comparison."""
+    hours = max(total_duration_s, EPS) / 3600.0
+    gasket_mean_seconds = (
+        float(np.mean(gasket_seconds_list)) if gasket_seconds_list else None
+    )
+    gasket_seconds_range = (
+        [float(np.min(gasket_seconds_list)), float(np.max(gasket_seconds_list))]
+        if gasket_seconds_list
+        else None
+    )
+
+    detector_labels = {
+        "omega_cal_metastable": "Sentinel Settle Ω_cal ≥ 0.07",
+        "omega_cal_veto": "Sentinel Settle Ω_cal ≥ 0.19",
+        "rmssd_drop": "Rolling RMSSD drop (<0.75× baseline)",
+        "hr_elevation": "Heart-rate elevation (+10 bpm)",
+    }
+
+    def _pool(horizon_key: str, det_key: str, mode: str) -> dict[str, Any]:
+        tp = fp = ev_tp = ev_fn = 0
+        for row in method_session_rows:
+            block = row["scores"][horizon_key][det_key][mode]
+            tp += int(block["true_positives"])
+            fp += int(block["false_positives"])
+            ev_tp += int(block["events_detected_tp"])
+            ev_fn += int(block["events_missed_fn"])
+        denom = tp + fp
+        return {
+            "true_positives": tp,
+            "false_positives": fp,
+            "precision": (float(tp / denom) if denom > 0 else None),
+            "false_alarms_per_hour": float(fp / hours),
+            "total_ground_truth_events": int(total_events),
+            "events_detected_tp": int(ev_tp),
+            "events_missed_fn": int(ev_fn),
+            "event_recall": (float(ev_tp / total_events) if total_events else None),
+        }
+
+    comparison: dict[str, Any] = {}
+    for horizon_key, horizon_s in (
+        ("tactical_180s", TACTICAL_HORIZON_S),
+        ("mission_900s", PRE_EVENT_HORIZON_S),
+    ):
+        comparison[horizon_key] = {
+            "horizon_s": horizon_s,
+            "methods": {},
+        }
+        for det_key, label in detector_labels.items():
+            comparison[horizon_key]["methods"][det_key] = {
+                "label": label,
+                "raw_beat_level": _pool(horizon_key, det_key, "raw_beat_level"),
+                "sustained_gasket_filtered": _pool(
+                    horizon_key, det_key, "sustained_gasket_filtered"
+                ),
+            }
+
+    # Omega-focused false_alarm_analysis (calibrated) for both horizons
+    def _omega_fa(horizon_key: str) -> dict[str, Any]:
+        out: dict[str, Any] = {}
+        for thr_name, det_key in (
+            ("metastable_thinning", "omega_cal_metastable"),
+            ("phase_veto", "omega_cal_veto"),
+        ):
+            raw = _pool(horizon_key, det_key, "raw_beat_level")
+            sus = _pool(horizon_key, det_key, "sustained_gasket_filtered")
+            out[thr_name] = {
+                "threshold": (
+                    PHASE_METASTABLE if "metastable" in thr_name else PHASE_VETO
+                ),
+                "total_ground_truth_events": int(total_events),
+                "raw_beat_level": raw,
+                "sustained_gasket_filtered": sus,
+            }
+        return out
+
+    omega_fa = {
+        "pre_event_horizon_s": PRE_EVENT_HORIZON_S,
+        "tactical_horizon_s": TACTICAL_HORIZON_S,
+        "gasket_beats": GASKET_SUSTAIN_BEATS,
+        "gasket_sustain_beats": GASKET_SUSTAIN_BEATS,
+        "gasket_mean_seconds": gasket_mean_seconds,
+        "gasket_seconds_range": gasket_seconds_range,
+        "habitat_gasket_s": HABITAT_GASKET_S,
+        "total_duration_s": float(total_duration_s),
+        "total_duration_h": float(hours),
+        "total_ground_truth_events": int(total_events),
+        "calibration": {
+            "baseline_beats": BASELINE_CAL_BEATS,
+            "nominal_floor": NOMINAL_OMEGA_FLOOR,
+            "formula": "omega_offset = median(Omega[:30]) - 0.05; Omega_cal = clip(Omega - offset, 0, None)",
+        },
+        "by_horizon": {
+            "tactical_180s": {
+                "horizon_s": TACTICAL_HORIZON_S,
+                "by_threshold": _omega_fa("tactical_180s"),
+            },
+            "mission_900s": {
+                "horizon_s": PRE_EVENT_HORIZON_S,
+                "by_threshold": _omega_fa("mission_900s"),
+            },
+        },
+        # Default "by_threshold" = strict tactical 180 s (primary claim)
+        "by_threshold": _omega_fa("tactical_180s"),
+        "sessions": {
+            row["session"]: {
+                "duration_s": row["duration_s"],
+                "n_event_segments": row["n_event_segments"],
+                "omega_offset": row["omega_offset"],
+                "gasket_mean_seconds": row["gasket_mean_seconds"],
+            }
+            for row in method_session_rows
+        },
+    }
+
+    return {
+        "omega_false_alarm_analysis": omega_fa,
+        "method_comparison": comparison,
+        "detector_baselines": {
+            "rmssd_roll_beats": RMSSD_ROLL_BEATS,
+            "rmssd_drop_frac": RMSSD_DROP_FRAC,
+            "hr_elevation_bpm": HR_ELEVATION_BPM,
+            "gasket_beats": GASKET_SUSTAIN_BEATS,
+        },
+    }
+
+
+def youden_optimize_threshold(
+    scores: np.ndarray,
+    labels: np.ndarray,
+    n_grid: int = 120,
+    min_tau: float | None = None,
+    max_tau: float | None = None,
+) -> dict[str, Any]:
+    """
+    ROC / Youden's J optimization on beat-level Event-window labels.
+    J = TPR + TNR - 1 = TPR - FPR. Returns argmax_J threshold.
+    """
+    scores = np.asarray(scores, dtype=float)
+    labels = np.asarray(labels, dtype=bool)
+    pos = labels
+    neg = ~labels
+    n_pos = int(np.sum(pos))
+    n_neg = int(np.sum(neg))
+    if n_pos == 0 or n_neg == 0 or len(scores) == 0:
+        fallback = PHASE_METASTABLE if min_tau is None else float(min_tau)
+        return {
+            "threshold": fallback,
+            "youden_j": None,
+            "tpr": None,
+            "fpr": None,
+            "n_pos": n_pos,
+            "n_neg": n_neg,
+        }
+
+    lo = float(np.min(scores)) if min_tau is None else float(min_tau)
+    hi = float(np.max(scores)) if max_tau is None else float(max_tau)
+    if hi <= lo:
+        hi = lo + EPS
+    grid = np.unique(np.concatenate([np.linspace(lo, hi, n_grid), scores]))
+    if min_tau is not None:
+        grid = grid[grid >= min_tau - EPS]
+    if max_tau is not None:
+        grid = grid[grid <= max_tau + EPS]
+    if len(grid) == 0:
+        grid = np.array([lo])
+
+    best = {"threshold": float(grid[0]), "youden_j": -1e18, "tpr": 0.0, "fpr": 1.0}
+    for tau in grid:
+        pred = scores >= tau
+        tpr = float(np.sum(pred & pos) / n_pos)
+        fpr = float(np.sum(pred & neg) / n_neg)
+        j = tpr - fpr
+        if j > best["youden_j"]:
+            best = {
+                "threshold": float(tau),
+                "youden_j": float(j),
+                "tpr": tpr,
+                "fpr": fpr,
+            }
+    best["n_pos"] = n_pos
+    best["n_neg"] = n_neg
+    return best
+
+
+def optimize_thresholds_on_train(
+    train_packs: list[dict[str, Any]],
+    horizon_s: float = TACTICAL_HORIZON_S,
+) -> dict[str, Any]:
+    """Fit τ_metastable / τ_veto via Youden J on training scenarios only."""
+    scores_list = []
+    labels_list = []
+    offsets = []
+    for pack in train_packs:
+        t = pack["t"]
+        omega = pack["omega_cal"]
+        labels = tp_window_mask(t, pack["event_segments"], horizon_s)
+        scores_list.append(omega)
+        labels_list.append(labels)
+        offsets.append(float(pack["omega_offset"]))
+    scores = np.concatenate(scores_list)
+    labels = np.concatenate(labels_list)
+
+    # Constrained ROC bands keep τ_meta / τ_veto operationally separated
+    # (unconstrained Youden on beat imbalance can collapse both to one cut).
+    meta = youden_optimize_threshold(
+        scores, labels, min_tau=0.02, max_tau=0.20
+    )
+    veto_floor = max(float(meta["threshold"]) + 0.05, 0.12)
+    veto = youden_optimize_threshold(
+        scores, labels, min_tau=veto_floor, max_tau=0.50
+    )
+    if veto["threshold"] <= meta["threshold"]:
+        veto = {
+            **veto,
+            "threshold": float(meta["threshold"] + (PHASE_VETO - PHASE_METASTABLE)),
+        }
+    return {
+        "tau_metastable": float(meta["threshold"]),
+        "tau_veto": float(veto["threshold"]),
+        "metastable_roc": meta,
+        "veto_roc": veto,
+        "train_mean_omega_offset": float(np.mean(offsets)) if offsets else None,
+        "n_train_beats": int(len(scores)),
+        "n_train_positive_beats": int(np.sum(labels)),
+        "search_bands": {
+            "metastable": [0.02, 0.20],
+            "veto_min_gap_above_meta": 0.05,
+            "veto": [0.12, 0.50],
+        },
+    }
+
+
+def lead_time_for_threshold(
+    t: np.ndarray,
+    omega_cal: np.ndarray,
+    event_segments: list[tuple[float, float]],
+    threshold: float,
+    gasket_beats: int = GASKET_SUSTAIN_BEATS,
+) -> dict[str, float | None]:
+    """Sustained crossing lead time vs first Event onset on a held-out session."""
+    cross_t, cross_om = first_sustained_crossing(
+        t, omega_cal, threshold, n_sustain=gasket_beats
+    )
+    ref = float(event_segments[0][0]) if event_segments else None
+    lead = (ref - cross_t) if (ref is not None and cross_t is not None) else None
+    return {
+        "first_crossing_t_s": cross_t,
+        "reference_event_t_s": ref,
+        "lead_time_s": (float(lead) if lead is not None else None),
+        "omega_at_crossing": cross_om,
+    }
+
+
+def score_loso_fold(
+    holdout: dict[str, Any],
+    tau_metastable: float,
+    tau_veto: float,
+    horizon_s: float = TACTICAL_HORIZON_S,
+    gasket_beats: int = GASKET_SUSTAIN_BEATS,
+) -> dict[str, Any]:
+    """Out-of-sample sustained-gasket scores + lead time for one held-out scenario."""
+    t = holdout["t"]
+    omega = holdout["omega_cal"]
+    segs = holdout["event_segments"]
+    dur = holdout["duration_s"]
+    meta_score = score_alert_series(
+        t, omega >= tau_metastable, segs, dur, horizon_s, gasket_beats
+    )
+    veto_score = score_alert_series(
+        t, omega >= tau_veto, segs, dur, horizon_s, gasket_beats
+    )
+    lead = lead_time_for_threshold(t, omega, segs, tau_metastable, gasket_beats)
+    return {
+        "tau_metastable": float(tau_metastable),
+        "tau_veto": float(tau_veto),
+        "n_events": len(segs),
+        "duration_s": float(dur),
+        "metastable": meta_score["sustained_gasket_filtered"],
+        "phase_veto": veto_score["sustained_gasket_filtered"],
+        "lead_time": lead,
+    }
+
+
+def run_loso_holdout(
+    packs: list[dict[str, Any]],
+    horizon_s: float = TACTICAL_HORIZON_S,
+) -> dict[str, Any]:
+    """
+    4-fold Leave-One-Scenario-Out across CA / DA / LOFT / SS.
+
+    Thresholds (Youden) and theoretical 0.07/0.19 are fit/fixed on the 3
+    training scenarios only; held-out session is scored out-of-sample.
+    """
+    by_id = {p["session"]: p for p in packs}
+    order = [s for s in ("25_CA", "25_DA", "25_LOFT", "25_SS") if s in by_id]
+    if len(order) < 2:
+        order = sorted(by_id.keys())
+
+    folds = []
+    for hold_id in order:
+        train_ids = [s for s in order if s != hold_id]
+        train_packs = [by_id[s] for s in train_ids]
+        hold = by_id[hold_id]
+        fitted = optimize_thresholds_on_train(train_packs, horizon_s=horizon_s)
+
+        youden = score_loso_fold(
+            hold, fitted["tau_metastable"], fitted["tau_veto"], horizon_s
+        )
+        fixed = score_loso_fold(hold, PHASE_METASTABLE, PHASE_VETO, horizon_s)
+
+        folds.append(
+            {
+                "held_out_scenario": hold_id,
+                "train_scenarios": train_ids,
+                "fitted_thresholds": {
+                    "tau_metastable": fitted["tau_metastable"],
+                    "tau_veto": fitted["tau_veto"],
+                    "metastable_youden_j": fitted["metastable_roc"].get("youden_j"),
+                    "veto_youden_j": fitted["veto_roc"].get("youden_j"),
+                    "train_mean_omega_offset": fitted["train_mean_omega_offset"],
+                },
+                "youden_optimized": youden,
+                "fixed_theoretical_0_07_0_19": fixed,
+            }
+        )
+
+    def _pool(scheme_key: str, thr_key: str) -> dict[str, Any]:
+        tp = fp = ev_tp = ev_tot = 0
+        dur = 0.0
+        leads = []
+        for f in folds:
+            block = f[scheme_key][thr_key]
+            tp += int(block["true_positives"])
+            fp += int(block["false_positives"])
+            ev_tp += int(block["events_detected_tp"])
+            ev_tot += int(block["total_ground_truth_events"])
+            dur += float(f[scheme_key]["duration_s"])
+            lt = f[scheme_key]["lead_time"].get("lead_time_s")
+            if lt is not None:
+                leads.append(float(lt))
+        hours = max(dur, EPS) / 3600.0
+        denom = tp + fp
+        return {
+            "true_positives": tp,
+            "false_positives": fp,
+            "precision": (float(tp / denom) if denom > 0 else None),
+            "false_alarms_per_hour": float(fp / hours),
+            "events_detected_tp": ev_tp,
+            "total_ground_truth_events": ev_tot,
+            "event_recall": (float(ev_tp / ev_tot) if ev_tot else None),
+            "mean_lead_time_s": (float(np.mean(leads)) if leads else None),
+            "n_folds_with_lead_time": len(leads),
+            "total_duration_s": float(dur),
+        }
+
+    pooled = {
+        "youden_optimized": {
+            "metastable": _pool("youden_optimized", "metastable"),
+            "phase_veto": _pool("youden_optimized", "phase_veto"),
+        },
+        "fixed_theoretical_0_07_0_19": {
+            "metastable": _pool("fixed_theoretical_0_07_0_19", "metastable"),
+            "phase_veto": _pool("fixed_theoretical_0_07_0_19", "phase_veto"),
+        },
+    }
+    return {
+        "n_folds": len(folds),
+        "scenarios": order,
+        "horizon_s": float(horizon_s),
+        "gasket_beats": GASKET_SUSTAIN_BEATS,
+        "folds": folds,
+        "pooled": pooled,
+        "note": (
+            "Leave-One-Scenario-Out: Youden τ fit on 3 train scenarios only; "
+            "held-out scored with Tier-1 5-beat gasket and 180 s tactical horizon. "
+            "Per-session Omega_cal re-anchor uses only that session's first 30 beats."
+        ),
+    }
+
+
+def print_loso_table(loso: dict[str, Any]) -> None:
+    """Terminal Cross-Scenario Hold-Out (LOSO) table."""
+    headers = (
+        "Hold-out",
+        "Scheme",
+        "τ_meta/τ_veto",
+        "Prec@0.07",
+        "Rec",
+        "FA/h",
+        "Lead_s",
+        "Prec@veto",
+        "Rec@veto",
+    )
+    rows: list[list[str]] = []
+    for f in loso["folds"]:
+        for scheme, label in (
+            ("fixed_theoretical_0_07_0_19", "Fixed 0.07/0.19"),
+            ("youden_optimized", "Youden LOSO"),
+        ):
+            block = f[scheme]
+            m = block["metastable"]
+            v = block["phase_veto"]
+            lt = block["lead_time"].get("lead_time_s")
+            rows.append(
+                [
+                    f["held_out_scenario"].replace("25_", ""),
+                    label,
+                    f"{block['tau_metastable']:.3f}/{block['tau_veto']:.3f}",
+                    f"{m['precision']:.3f}" if m["precision"] is not None else "—",
+                    f"{m['events_detected_tp']}/{m['total_ground_truth_events']}",
+                    f"{m['false_alarms_per_hour']:.2f}",
+                    f"{lt:.1f}" if lt is not None else "—",
+                    f"{v['precision']:.3f}" if v["precision"] is not None else "—",
+                    f"{v['events_detected_tp']}/{v['total_ground_truth_events']}",
+                ]
+            )
+    # Pooled rows
+    for scheme, label in (
+        ("fixed_theoretical_0_07_0_19", "Fixed 0.07/0.19"),
+        ("youden_optimized", "Youden LOSO"),
+    ):
+        m = loso["pooled"][scheme]["metastable"]
+        v = loso["pooled"][scheme]["phase_veto"]
+        rows.append(
+            [
+                "POOLED",
+                label,
+                "—",
+                f"{m['precision']:.3f}" if m["precision"] is not None else "—",
+                f"{m['events_detected_tp']}/{m['total_ground_truth_events']}",
+                f"{m['false_alarms_per_hour']:.2f}",
+                (
+                    f"{m['mean_lead_time_s']:.1f}"
+                    if m["mean_lead_time_s"] is not None
+                    else "—"
+                ),
+                f"{v['precision']:.3f}" if v["precision"] is not None else "—",
+                f"{v['events_detected_tp']}/{v['total_ground_truth_events']}",
+            ]
+        )
+
+    widths = [max(len(h), *(len(r[i]) for r in rows)) for i, h in enumerate(headers)]
+    sep = "-+-".join("-" * w for w in widths)
+    fmt = " | ".join(f"{{:{w}}}" for w in widths)
+    print("\n=== Cross-Scenario Hold-Out (LOSO) — 180 s horizon, Tier-1 gasket ===")
+    print(f"  {loso['note']}")
+    print(fmt.format(*headers))
+    print(sep)
+    for r in rows:
+        print(fmt.format(*r))
+    print()
+
+
+def print_method_comparison_table(comparison: dict[str, Any]) -> None:
+    """Head-to-head Omega_cal vs RMSSD vs HR under Tier-1 gasket."""
+    headers = ("Horizon", "Method", "Precision", "Events TP/Tot", "Recall", "FA/h")
+    rows: list[list[str]] = []
+    for horizon_key, horizon_label in (
+        ("tactical_180s", "180 s tactical"),
+        ("mission_900s", "900 s mission"),
+    ):
+        block = comparison[horizon_key]["methods"]
+        for det_key in (
+            "omega_cal_metastable",
+            "omega_cal_veto",
+            "rmssd_drop",
+            "hr_elevation",
+        ):
+            m = block[det_key]["sustained_gasket_filtered"]
+            rows.append(
+                [
+                    horizon_label,
+                    block[det_key]["label"],
+                    f"{m['precision']:.3f}" if m["precision"] is not None else "—",
+                    f"{m['events_detected_tp']}/{m['total_ground_truth_events']}",
+                    f"{m['event_recall']:.3f}" if m["event_recall"] is not None else "—",
+                    f"{m['false_alarms_per_hour']:.2f}",
+                ]
+            )
+    widths = [max(len(h), *(len(r[i]) for r in rows)) for i, h in enumerate(headers)]
+    sep = "-+-".join("-" * w for w in widths)
+    fmt = " | ".join(f"{{:{w}}}" for w in widths)
+    print("\n=== Method Comparison (Tier-1 5-beat sustained gasket) ===")
+    print(fmt.format(*headers))
+    print(sep)
+    for r in rows:
+        print(fmt.format(*r))
+    print()
+
+
+def compute_osd575_cohort_metrics(lsds_crew: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """
+    Cohort-level sensitivity / specificity on OSD-575 (N=4 discrete blood draws).
+
+    Positive class: R+1 post-flight Omega exceeds threshold.
+    Negative class: pre-flight (L-*) mean Omega stays below threshold.
+    """
+    crews = sorted(lsds_crew.keys())
+    by_threshold: dict[str, Any] = {}
+    per_crew: dict[str, Any] = {}
+
+    for crew in crews:
+        cr = lsds_crew[crew]
+        tags = [str(t) for t in cr["timepoints"]]
+        om = np.asarray(cr["Omega_series"], dtype=float)
+        pre_mask = np.array([t.startswith("L-") for t in tags])
+        r1_idx = next((i for i, t in enumerate(tags) if t == "R+1"), None)
+        pre_omega = float(np.mean(om[pre_mask])) if pre_mask.any() else float("nan")
+        r1_omega = float(om[r1_idx]) if r1_idx is not None else float("nan")
+        per_crew[crew] = {
+            "preflight_mean_Omega": pre_omega,
+            "r_plus_1_Omega": r1_omega,
+        }
+
+    for thr_name, thr in (
+        ("metastable_thinning", PHASE_METASTABLE),
+        ("phase_veto", PHASE_VETO),
+    ):
+        post_pos = pre_neg = 0
+        n = 0
+        for crew in crews:
+            pre_o = per_crew[crew]["preflight_mean_Omega"]
+            r1_o = per_crew[crew]["r_plus_1_Omega"]
+            if not (np.isfinite(pre_o) and np.isfinite(r1_o)):
+                continue
+            n += 1
+            if r1_o >= thr:
+                post_pos += 1
+            if pre_o < thr:
+                pre_neg += 1
+        sensitivity = (post_pos / n) if n else None
+        specificity = (pre_neg / n) if n else None
+        by_threshold[thr_name] = {
+            "threshold": thr,
+            "n_crew": n,
+            "postflight_r1_exceedances": post_pos,
+            "preflight_below_threshold": pre_neg,
+            "sensitivity": (float(sensitivity) if sensitivity is not None else None),
+            "specificity": (float(specificity) if specificity is not None else None),
+        }
+
+    return {
+        "n_crew": len(crews),
+        "note": (
+            "OSD-575 consists of discrete blood-draw timepoints "
+            "(not continuous ECG)."
+        ),
+        "per_crew": per_crew,
+        "by_threshold": by_threshold,
+    }
+
+
 def aggregate_false_alarm_metrics(
     session_scores: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
-    """Pool TP/FP across Langley sessions for each threshold and filter mode."""
+    """Pool precision, FA/h, and event-level recall across Langley sessions."""
     modes = ("raw_beat_level", "raw_excursion_onsets", "sustained_gasket_filtered")
     thresholds = {
         "metastable_thinning": PHASE_METASTABLE,
@@ -441,9 +1221,26 @@ def aggregate_false_alarm_metrics(
         float(s.get("duration_s", 0.0)) for s in session_scores.values()
     )
     hours = max(total_duration_s, EPS) / 3600.0
+
+    gasket_secs = [
+        float(s["gasket_mean_seconds"])
+        for s in session_scores.values()
+        if s.get("gasket_mean_seconds") is not None
+    ]
+    gasket_mean_seconds = float(np.mean(gasket_secs)) if gasket_secs else None
+    gasket_seconds_range = (
+        [float(np.min(gasket_secs)), float(np.max(gasket_secs))]
+        if gasket_secs
+        else None
+    )
+
     pooled: dict[str, Any] = {
         "pre_event_horizon_s": PRE_EVENT_HORIZON_S,
+        "gasket_beats": GASKET_SUSTAIN_BEATS,
         "gasket_sustain_beats": GASKET_SUSTAIN_BEATS,
+        "gasket_mean_seconds": gasket_mean_seconds,
+        "gasket_seconds_range": gasket_seconds_range,
+        "habitat_gasket_s": HABITAT_GASKET_S,
         "total_duration_s": float(total_duration_s),
         "total_duration_h": float(hours),
         "by_threshold": {},
@@ -451,40 +1248,68 @@ def aggregate_false_alarm_metrics(
     }
     for thr_name, thr in thresholds.items():
         by_mode: dict[str, Any] = {}
+        # Event-level pooled counts (identical total events for both modes)
+        total_events = sum(
+            int(
+                sess["thresholds"][thr_name]["event_level_recall"][
+                    "total_ground_truth_events"
+                ]
+            )
+            for sess in session_scores.values()
+        )
         for mode in modes:
             tp = fp = 0
+            ev_tp = ev_fn = 0
             for sess in session_scores.values():
                 block = sess["thresholds"][thr_name][mode]
                 tp += int(block["true_positives"])
                 fp += int(block["false_positives"])
+                if mode in ("raw_beat_level", "sustained_gasket_filtered"):
+                    ev_tp += int(block.get("events_detected_tp", 0))
+                    ev_fn += int(block.get("events_missed_fn", 0))
             denom = tp + fp
-            by_mode[mode] = {
+            entry: dict[str, Any] = {
                 "true_positives": tp,
                 "false_positives": fp,
                 "precision": (float(tp / denom) if denom > 0 else None),
                 "false_alarms_per_hour": float(fp / hours),
             }
+            if mode in ("raw_beat_level", "sustained_gasket_filtered"):
+                entry.update(
+                    {
+                        "total_ground_truth_events": int(total_events),
+                        "events_detected_tp": int(ev_tp),
+                        "events_missed_fn": int(ev_fn),
+                        "event_recall": (
+                            float(ev_tp / total_events) if total_events > 0 else None
+                        ),
+                    }
+                )
+            by_mode[mode] = entry
         pooled["by_threshold"][thr_name] = {
             "threshold": thr,
+            "total_ground_truth_events": int(total_events),
             **by_mode,
         }
     return pooled
 
 
-def print_false_alarm_table(fa_report: dict[str, Any]) -> None:
-    """Terminal summary of TP / FP / precision / FA-per-hour."""
+def print_false_alarm_table(
+    fa_report: dict[str, Any],
+    cohort: dict[str, Any] | None = None,
+) -> None:
+    """Terminal Precision + Recall summary (alert + event-level)."""
     headers = (
         "Threshold",
         "Mode",
-        "TP",
-        "FP",
-        "Precision",
-        "FA/hour",
+        "AlertPrec",
+        "FA/h",
+        "Events TP/Tot",
+        "EventRecall",
     )
     rows: list[list[str]] = []
     labels = {
         "raw_beat_level": "Raw beat-level",
-        "raw_excursion_onsets": "Raw excursion",
         "sustained_gasket_filtered": "Sustained/gasket",
     }
     thr_labels = {
@@ -495,14 +1320,21 @@ def print_false_alarm_table(fa_report: dict[str, Any]) -> None:
         for mode, label in labels.items():
             m = thr_block[mode]
             prec = m["precision"]
+            recall = m.get("event_recall")
+            ev_tp = m.get("events_detected_tp")
+            ev_tot = m.get("total_ground_truth_events")
             rows.append(
                 [
                     thr_labels[thr_key],
                     label,
-                    str(m["true_positives"]),
-                    str(m["false_positives"]),
                     f"{prec:.3f}" if prec is not None else "—",
                     f"{m['false_alarms_per_hour']:.2f}",
+                    (
+                        f"{ev_tp}/{ev_tot}"
+                        if ev_tp is not None and ev_tot is not None
+                        else "—"
+                    ),
+                    f"{recall:.3f}" if recall is not None else "—",
                 ]
             )
     widths = [
@@ -510,16 +1342,61 @@ def print_false_alarm_table(fa_report: dict[str, Any]) -> None:
     ]
     sep = "-+-".join("-" * w for w in widths)
     fmt = " | ".join(f"{{:{w}}}" for w in widths)
-    print("\n=== False-Alarm & Precision (Event ground truth, 900 s pre-event horizon) ===")
+    g_mean = fa_report.get("gasket_mean_seconds")
+    g_range = fa_report.get("gasket_seconds_range")
+    range_txt = (
+        f"{g_range[0]:.2f}–{g_range[1]:.2f} s" if g_range else "n/a"
+    )
+    print(
+        "\n=== Precision + Recall (Ω_cal, Event ground truth; "
+        "primary horizon = 180 s tactical) ==="
+    )
     print(
         f"  Pooled Langley duration = {fa_report['total_duration_s']:.1f} s "
-        f"({fa_report['total_duration_h']:.3f} h); "
-        f"gasket sustain = {fa_report['gasket_sustain_beats']} beats"
+        f"({fa_report['total_duration_h']:.3f} h)"
     )
+    if g_mean is not None:
+        print(
+            f"  Tier-1 gasket = {fa_report['gasket_beats']} beats "
+            f"(mean {g_mean:.2f} s, range {range_txt}); "
+            f"Tier-2 habitat gasket = {fa_report['habitat_gasket_s']:.0f} s"
+        )
+    else:
+        print(f"  Tier-1 gasket = {fa_report['gasket_beats']} beats")
     print(fmt.format(*headers))
     print(sep)
     for r in rows:
         print(fmt.format(*r))
+
+    if cohort is not None:
+        print("\n=== OSD-575 Cohort Sensitivity / Specificity (N=4, discrete draws) ===")
+        print(f"  {cohort['note']}")
+        ch = (
+            "Threshold",
+            "R+1 exceed",
+            "Pre < thr",
+            "Sensitivity",
+            "Specificity",
+        )
+        crows = []
+        for thr_key, label in thr_labels.items():
+            b = cohort["by_threshold"][thr_key]
+            crows.append(
+                [
+                    label,
+                    f"{b['postflight_r1_exceedances']}/{b['n_crew']}",
+                    f"{b['preflight_below_threshold']}/{b['n_crew']}",
+                    f"{b['sensitivity']:.3f}" if b["sensitivity"] is not None else "—",
+                    f"{b['specificity']:.3f}" if b["specificity"] is not None else "—",
+                ]
+            )
+        cw = [max(len(h), *(len(r[i]) for r in crows)) for i, h in enumerate(ch)]
+        csep = "-+-".join("-" * w for w in cw)
+        cfmt = " | ".join(f"{{:{w}}}" for w in cw)
+        print(cfmt.format(*ch))
+        print(csep)
+        for r in crows:
+            print(cfmt.format(*r))
     print()
 
 
@@ -882,11 +1759,16 @@ def generate_lead_time_figure(
     """
     Publication-grade two-panel Cupola / Night Ops validation figure.
 
-    Panel 1 — NASA Langley 25_LOFT Omega trajectory + early-warning shade.
+    Panel 1 — NASA Langley 25_LOFT baseline-calibrated Omega_cal + lead-time shade.
     Panel 2 — OSD-575 Inspiration4 pre- vs post-flight composite Omega / displacement.
     """
     t = np.asarray(loft_kin["t"], dtype=float)
-    omega = np.asarray(loft_kin["Omega_t"], dtype=float)
+    if "Omega_cal" in loft_kin:
+        omega = np.asarray(loft_kin["Omega_cal"], dtype=float)
+        omega_label = r"$\Omega_{\mathrm{cal}}$ (25_LOFT, re-anchored)"
+    else:
+        omega = np.asarray(loft_kin["Omega_t"], dtype=float)
+        omega_label = r"$\Omega_t$ (25_LOFT)"
     cross_t, _ = first_sustained_crossing(t, omega, PHASE_METASTABLE, n_sustain=5)
     if cross_t is None:
         cross_t, _ = first_crossing(t, omega, PHASE_METASTABLE)
@@ -904,7 +1786,7 @@ def generate_lead_time_figure(
 
     # ---- Panel 1: 25_LOFT lead time ----
     _style_night_ops_axis(ax1)
-    ax1.plot(t, omega, color=COLOR_SAGE, linewidth=1.35, label=r"$\Omega_t$ (25_LOFT)")
+    ax1.plot(t, omega, color=COLOR_SAGE, linewidth=1.35, label=omega_label)
     ax1.axhline(
         PHASE_METASTABLE,
         color=COLOR_AMBER,
@@ -919,6 +1801,8 @@ def generate_lead_time_figure(
         linewidth=1.4,
         label=r"Phase Veto ($\Omega=0.19$)",
     )
+    # Nominal band guide
+    ax1.axhspan(0.0, PHASE_METASTABLE, color="#2A3A32", alpha=0.35, zorder=0)
 
     if cross_t is not None and event_t is not None and lead_s is not None and lead_s > 0:
         ax1.axvspan(
@@ -964,9 +1848,9 @@ def generate_lead_time_figure(
     ax1.set_xlim(float(t[0]), float(t[-1]))
     ax1.set_ylim(bottom=0.0)
     ax1.set_xlabel("Time (TimeSecs)")
-    ax1.set_ylabel(r"$\Omega_t$")
+    ax1.set_ylabel(r"$\Omega_{\mathrm{cal}}$")
     ax1.set_title(
-        "NASA Langley CSM 25_LOFT — Flight-Crew ECG Lead-Time Detection",
+        "NASA Langley CSM 25_LOFT — Calibrated Autonomic Workload Lead-Time",
         fontsize=11,
         pad=8,
     )
@@ -1126,7 +2010,12 @@ def main() -> int:
     lead_hits: list[LeadTimeHit] = []
     loft_kin: dict[str, np.ndarray] | None = None
     loft_event_t: float | None = None
-    fa_session_scores: dict[str, dict[str, Any]] = {}
+    # Per-session payloads for dual-horizon / method comparison pooling
+    method_session_rows: list[dict[str, Any]] = []
+    gasket_seconds_list: list[float] = []
+    total_events_count = 0
+    total_duration_s = 0.0
+    loso_packs: list[dict[str, Any]] = []
 
     for path in csm_files:
         cols = list(pd.read_csv(path, nrows=0).columns)
@@ -1140,40 +2029,101 @@ def main() -> int:
         sid = path.stem  # 25_CA, 25_DA, ...
         duration_s = float(meta["duration_s"])
         event_segments = session["event_segments"]
+        ibi = np.asarray(session["ibi"], dtype=float)
 
-        # Event-grounded false-alarm / precision scoring
-        thr_scores = {
-            "metastable_thinning": score_threshold_alerts(
-                kin["t"],
-                kin["Omega_t"],
-                PHASE_METASTABLE,
-                event_segments,
-                duration_s,
-            ),
-            "phase_veto": score_threshold_alerts(
-                kin["t"],
-                kin["Omega_t"],
-                PHASE_VETO,
-                event_segments,
-                duration_s,
-            ),
+        mean_ibi_s = meta.get("mean_ibi_s")
+        gasket_mean_seconds = (
+            float(GASKET_SUSTAIN_BEATS * mean_ibi_s) if mean_ibi_s else None
+        )
+        if gasket_mean_seconds is not None:
+            gasket_seconds_list.append(gasket_mean_seconds)
+
+        # Baseline re-anchor (mobile-app aligned)
+        omega_cal, omega_offset = reanchor_omega(kin["Omega_t"])
+        kin["Omega_cal"] = omega_cal
+        kin["omega_offset"] = np.array([omega_offset])
+
+        hr_rmssd = build_hr_rmssd_alerts(ibi)
+        detectors = {
+            "omega_cal_metastable": omega_cal >= PHASE_METASTABLE,
+            "omega_cal_veto": omega_cal >= PHASE_VETO,
+            "rmssd_drop": hr_rmssd["rmssd_alert"],
+            "hr_elevation": hr_rmssd["hr_alert"],
         }
-        fa_session_scores[sid] = {
-            "duration_s": duration_s,
-            "n_event_segments": len(event_segments),
-            "thresholds": thr_scores,
+
+        session_method_scores: dict[str, Any] = {}
+        for horizon_name, horizon_s in (
+            ("tactical_180s", TACTICAL_HORIZON_S),
+            ("mission_900s", PRE_EVENT_HORIZON_S),
+        ):
+            session_method_scores[horizon_name] = {}
+            for det_name, alert in detectors.items():
+                session_method_scores[horizon_name][det_name] = score_alert_series(
+                    kin["t"],
+                    alert,
+                    event_segments,
+                    duration_s,
+                    horizon_s=horizon_s,
+                    gasket_beats=GASKET_SUSTAIN_BEATS,
+                )
+
+        method_session_rows.append(
+            {
+                "session": sid,
+                "duration_s": duration_s,
+                "n_event_segments": len(event_segments),
+                "mean_ibi_s": mean_ibi_s,
+                "gasket_mean_seconds": gasket_mean_seconds,
+                "omega_offset": omega_offset,
+                "baseline_hr_bpm": hr_rmssd["baseline_hr_bpm"],
+                "baseline_rmssd_s": hr_rmssd["baseline_rmssd_s"],
+                "scores": session_method_scores,
+            }
+        )
+        loso_packs.append(
+            {
+                "session": sid,
+                "t": kin["t"],
+                "omega_cal": omega_cal,
+                "event_segments": event_segments,
+                "duration_s": duration_s,
+                "omega_offset": omega_offset,
+                "mean_ibi_s": mean_ibi_s,
+            }
+        )
+        total_events_count += len(event_segments)
+        total_duration_s += duration_s
+
+        # Legacy-compatible dual-horizon Omega_cal FA block for README tables
+        thr_scores_180 = {
+            "metastable_thinning": session_method_scores["tactical_180s"][
+                "omega_cal_metastable"
+            ],
+            "phase_veto": session_method_scores["tactical_180s"]["omega_cal_veto"],
+        }
+        thr_scores_900 = {
+            "metastable_thinning": session_method_scores["mission_900s"][
+                "omega_cal_metastable"
+            ],
+            "phase_veto": session_method_scores["mission_900s"]["omega_cal_veto"],
         }
 
         csm_sessions[sid] = {
             **meta,
+            "omega_offset": omega_offset,
             "mean_Omega": float(np.mean(kin["Omega_t"])),
-            "max_Omega": float(np.max(kin["Omega_t"])),
+            "mean_Omega_cal": float(np.mean(omega_cal)),
+            "max_Omega_cal": float(np.max(omega_cal)),
+            "pct_metastable_cal": float(np.mean(omega_cal >= PHASE_METASTABLE) * 100.0),
+            "pct_veto_cal": float(np.mean(omega_cal >= PHASE_VETO) * 100.0),
             "mean_a_perp": float(np.mean(kin["a_perp"])),
             "max_a_perp": float(np.max(kin["a_perp"])),
             "mean_F_c": float(np.mean(kin["F_c"])),
-            "pct_metastable": float(np.mean(kin["Omega_t"] >= PHASE_METASTABLE) * 100.0),
-            "pct_veto": float(np.mean(kin["Omega_t"] >= PHASE_VETO) * 100.0),
-            "false_alarm_metrics": thr_scores,
+            "baseline_hr_bpm": hr_rmssd["baseline_hr_bpm"],
+            "baseline_rmssd_s": hr_rmssd["baseline_rmssd_s"],
+            "false_alarm_metrics_tactical_180s": thr_scores_180,
+            "false_alarm_metrics_mission_900s": thr_scores_900,
+            "gasket_mean_seconds": gasket_mean_seconds,
         }
 
         # Decimate trajectory for CSV summary (keep up to ~500 points)
@@ -1193,7 +2143,8 @@ def main() -> int:
                     "a_perp": float(kin["a_perp"][i]),
                     "F_c": float(kin["F_c"][i]),
                     "Omega_t": float(kin["Omega_t"][i]),
-                    "phase": phase_label(float(kin["Omega_t"][i])),
+                    "Omega_cal": float(omega_cal[i]),
+                    "phase": phase_label(float(omega_cal[i])),
                 }
             )
 
@@ -1202,7 +2153,7 @@ def main() -> int:
             (PHASE_METASTABLE, "Metastable Thinning"),
             (PHASE_VETO, "Phase Veto"),
         ):
-            tc, oc = first_crossing(kin["t"], kin["Omega_t"], thr)
+            tc, oc = first_crossing(kin["t"], omega_cal, thr)
             lead = (ref - tc) if (ref is not None and tc is not None) else None
             lead_hits.append(
                 LeadTimeHit(
@@ -1217,18 +2168,26 @@ def main() -> int:
                 )
             )
 
-        meta_fa = thr_scores["metastable_thinning"]["sustained_gasket_filtered"]
+        fa180 = thr_scores_180["metastable_thinning"]["sustained_gasket_filtered"]
         print(
             f"    IBI n={meta['n_ibi']} mean_HR={meta['mean_hr_bpm']:.1f} bpm  "
-            f"Ω̄={csm_sessions[sid]['mean_Omega']:.4f} Ωmax={csm_sessions[sid]['max_Omega']:.4f}  "
-            f"sustained_FA/h(0.07)={meta_fa['false_alarms_per_hour']:.2f}"
+            f"Ω_cal̄={np.mean(omega_cal):.4f} offset={omega_offset:.4f}  "
+            f"gasket_FA/h@180s(0.07)={fa180['false_alarms_per_hour']:.2f}"
         )
 
         if sid == "25_LOFT":
             loft_kin = kin
             loft_event_t = ref
 
-    fa_report = aggregate_false_alarm_metrics(fa_session_scores)
+    method_comparison = pool_method_comparison(
+        method_session_rows,
+        total_duration_s=total_duration_s,
+        total_events=total_events_count,
+        gasket_seconds_list=gasket_seconds_list,
+    )
+    fa_report = method_comparison["omega_false_alarm_analysis"]
+    print("\n--- Cross-scenario LOSO hold-out ---", flush=True)
+    loso_report = run_loso_holdout(loso_packs, horizon_s=TACTICAL_HORIZON_S)
 
     # ---- Inspiration4 LSDS-8 ----
     print("\n--- Inspiration4 OSD-575 LSDS-8 ---")
@@ -1249,6 +2208,7 @@ def main() -> int:
         )
     trajectory_rows.extend(lsds["trajectory_rows"])
     lead_hits.extend(lsds["lead_hits"])
+    osd575_cohort = compute_osd575_cohort_metrics(lsds["crew"])
 
     # ---- Persist ----
     traj_df = pd.DataFrame(trajectory_rows)
@@ -1310,6 +2270,10 @@ def main() -> int:
         },
         "lead_time_detections": [asdict(h) for h in lead_hits],
         "false_alarm_analysis": fa_report,
+        "method_comparison": method_comparison["method_comparison"],
+        "detector_baselines": method_comparison["detector_baselines"],
+        "loso_holdout_validation": loso_report,
+        "osd575_cohort_metrics": osd575_cohort,
         "figure": plot_meta,
         "artifacts": {
             "validation_report_json": str(REPORT_JSON.relative_to(ROOT)).replace("\\", "/"),
@@ -1320,7 +2284,9 @@ def main() -> int:
     REPORT_JSON.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
     print_lead_time_table(lead_hits)
-    print_false_alarm_table(fa_report)
+    print_false_alarm_table(fa_report, cohort=osd575_cohort)
+    print_method_comparison_table(method_comparison["method_comparison"])
+    print_loso_table(loso_report)
     print(f"Wrote {REPORT_JSON}")
     print(f"Wrote {TRAJECTORY_CSV} ({len(traj_df)} rows)")
     if plot_meta is not None:
