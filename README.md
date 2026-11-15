@@ -3,11 +3,11 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](requirements.txt)
 [![Challenge](https://img.shields.io/badge/NASA_Space_Apps-2026-0B3D91.svg)](https://www.spaceappschallenge.org/)
-[![Demo 30s](https://img.shields.io/badge/Demo-30s_Galaxy_S22-FF0000.svg)](https://youtu.be/YOUR_VIDEO_ID)
+[![Demo 30s](https://img.shields.io/badge/Demo-30s_Galaxy_S22-FF0000.svg)](https://youtu.be/aTnl68-L_ms)
 
 **Operational claim:** Baseline-calibrated $\Omega_{\mathrm{cal}}$ is an autonomic workload / cognitive-overload early-warning signal that, on NASA Langley `25_LOFT`, gives **678 s (~11.3 min)** lead time to a labeled workload `Event` under a Tier-1 ~4 s gasket — supporting NASA’s *Risk of Inadequate Systems Operations Support* and *Risk of Behavioral Changes and Psychiatric Disorders*.
 
-**30-second Galaxy S22 demo:** [https://youtu.be/YOUR_VIDEO_ID](https://youtu.be/YOUR_VIDEO_ID) *(replace with final YouTube ID)*
+**30-second Galaxy S22 demo:** [https://youtu.be/aTnl68-L_ms](https://youtu.be/aTnl68-L_ms)
 
 ![Sentinel Settle NASA Validation Proof](results/omega_lead_time_plot.png)
 
