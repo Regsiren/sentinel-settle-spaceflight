@@ -110,7 +110,9 @@ Breath Sanctuary is **designed for closed-loop haptic pacing** to support autono
 
 Empirical lead-time proof: Langley **`25_LOFT` 678-second (~11.3-minute)** calibrated metastable-to-Event detection.
 
-## Challenge resources cited
+## Official Challenge Resources
+
+NASA Human Research Roadmap (challenge Resources tab):
 
 - **Risk of Inadequate Systems Operations Support** — ops-support risk during mission systems work; addressed here as autonomic / cognitive-overload early warning.
 - **Risk of Behavioral Changes and Psychiatric Disorders** — behavioral-health risk pathways relevant to continuous state monitoring and low-arousal recovery cues on long-duration missions.
@@ -137,17 +139,26 @@ python src/nasa_omega_validator.py
 | `results/omega_lead_time_plot.png` | 300 DPI Cupola / Night Ops figure (calibrated LOFT lead time + OSD-575 shift) |
 | Terminal tables | Lead-time, precision/recall, method comparison |
 
-## Data notes
+## NASA Datasets
 
-- Official Langley archive is distributed as `25.zip`. Unpacked session CSVs (`25_CA.csv`, `25_DA.csv`, `25_SS.csv`, `25_LOFT.csv`) are expected under `data/nasa_raw/nasa_csm_25/`. Zip archives under `data/nasa_raw/` are gitignored.
-- Column headers observed: `TimeSecs`, 20 EEG channels, `ECG`, `R`, `GSR`, `Event`. Measured sampling rate ≈ **256 Hz**.
-- OSD-575 LSDS-8 columns: `Sample Name` plus concentration / percent fields for a2-macroglobulin, AGP, CRP, fetuin-A, fibrinogen, haptoglobin, L-selectin, PF4, and SAP.
+- **NASA Langley Crew State Monitoring** (`25.zip`, 256 Hz physiological telemetry) — unpacked under `data/nasa_raw/nasa_csm_25/` (`25_CA.csv`, `25_DA.csv`, `25_SS.csv`, `25_LOFT.csv`). Zip archives under `data/nasa_raw/` are gitignored. Observed columns: `TimeSecs`, 20 EEG channels, `ECG`, `R`, `GSR`, `Event`.
+- **NASA OSDR `OSD-575`:** `LSDS-8_Multiplex_serum_cardiovascular_EvePanel_TRANSFORMED.csv` — Inspiration4 multiplex serum cardiovascular panel (`Sample Name` plus concentration / percent fields for a2-macroglobulin, AGP, CRP, fetuin-A, fibrinogen, haptoglobin, L-selectin, PF4, and SAP).
 
-## Prior Work & Attribution
+## Prior Research & Preprints
 
-- **Sentinel Settle** Flutter/BLE mobile edge app (pre-existing), including Breath Sanctuary **designed for closed-loop haptic pacing**: [https://github.com/Regsiren/sentinel-jolt-app](https://github.com/Regsiren/sentinel-jolt-app)
-- Zenodo preprints: [10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045), [10.5281/zenodo.20548468](https://doi.org/10.5281/zenodo.20548468)
-- The underlying kinematic governance method is the subject of a pre-existing UKIPO patent application filed by Thohat Ventures Ltd. This repository publishes an independent NASA-dataset validation implementation under Apache-2.0; it does not expand, waive, or transfer those patent rights.
+- Olaiya, R. (2026). *Upstream Latent Trajectory Governance: Information Geometry, eBPF Kernel Drops, and Cryptographic Attestation for Autonomous Systems* ([DOI: 10.5281/zenodo.23677470](https://doi.org/10.5281/zenodo.23677470) / [https://zenodo.org/records/23677470](https://zenodo.org/records/23677470), [ORCID: 0009-0002-6809-5061](https://orcid.org/0009-0002-6809-5061)) — source of the core `KinematicSentinelAuditor` orthogonal shear formulation, `0.07 / 0.19` tri-phase boundaries, and moving-horizon baseline recalibration principle.
+- Pre-existing Scale-Invariant Thermodynamic Attribution preprints: [DOI: 10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045) and [DOI: 10.5281/zenodo.20548469](https://doi.org/10.5281/zenodo.20548469).
+
+## Prior Prototype & IP Attribution
+
+The underlying local-first Flutter/BLE mobile prototype (**Sentinel Settle**, demonstrated in the project video), including Breath Sanctuary **designed for closed-loop haptic pacing**, was developed prior to the hackathon by Thohat Ventures Ltd: [https://github.com/Regsiren/sentinel-jolt-app](https://github.com/Regsiren/sentinel-jolt-app). The underlying kinematic governance method is subject to a pre-existing UKIPO patent application. This repository publishes an independent NASA-dataset validation implementation under Apache-2.0; it does not expand, waive, or transfer those patent rights.
+
+## Tools & AI Disclosure
+
+- **Python:** `numpy`, `pandas`, `scipy`, `matplotlib` (NASA ingestion, kinematic engine, LOSO / method-comparison validation, Cupola figure).
+- **Flutter / Dart:** Sentinel Settle mobile prototype (BLE edge monitoring; project demo video).
+- **Microsoft Clipchamp:** video assembly and `.srt` captions for the 30-second Galaxy S22 demo.
+- **AI-assisted workflows:** Cursor / Gemini used for validation scaffolding and documentation formatting.
 
 ## License
 
