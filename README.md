@@ -147,7 +147,7 @@ python src/nasa_omega_validator.py
 ## Prior Research & Preprints
 
 - Olaiya, R. (2026). *Upstream Latent Trajectory Governance: Information Geometry, eBPF Kernel Drops, and Cryptographic Attestation for Autonomous Systems* ([DOI: 10.5281/zenodo.23677470](https://doi.org/10.5281/zenodo.23677470) / [https://zenodo.org/records/23677470](https://zenodo.org/records/23677470), [ORCID: 0009-0002-6809-5061](https://orcid.org/0009-0002-6809-5061)) — source of the core `KinematicSentinelAuditor` orthogonal shear formulation, `0.07 / 0.19` tri-phase boundaries, and moving-horizon baseline recalibration principle.
-- Pre-existing Scale-Invariant Thermodynamic Attribution preprints: [DOI: 10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045) and [DOI: 10.5281/zenodo.20548469](https://doi.org/10.5281/zenodo.20548469).
+- Pre-existing Scale-Invariant Thermodynamic Attribution preprints: [DOI: 10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045) and [DOI: 10.5281/zenodo.20548469](https://doi.org/10.5281/zenodo.20548468).
 
 ## Prior Prototype & IP Attribution
 
